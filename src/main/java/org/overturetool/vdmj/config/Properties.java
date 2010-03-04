@@ -1,6 +1,6 @@
 /*******************************************************************************
  *
- *	Copyright (c) 2008 Fujitsu Services Ltd.
+ *	Copyright (c) 2010 Fujitsu Services Ltd.
  *
  *	Author: Nick Battle
  *
@@ -21,41 +21,35 @@
  *
  ******************************************************************************/
 
-package org.overturetool.vdmj.statements;
+package org.overturetool.vdmj.config;
 
-import org.overturetool.vdmj.lex.LexLocation;
-import org.overturetool.vdmj.runtime.Context;
-import org.overturetool.vdmj.values.Value;
+import org.overturetool.vdmj.util.ConfigBase;
 
-public class NonDeterministicStatement extends SimpleBlockStatement
+/**
+ * The Config class is used to hold global configuration values. The
+ * values are read from the vdmj.properties file, and defaults are defined
+ * as public statics.
+ */
+
+public class Properties extends ConfigBase
 {
-	private static final long serialVersionUID = 1L;
+	/** The default duration for RT statements executed in a block. */
+	public static int rt_duration_default = 2;
 
-	public NonDeterministicStatement(LexLocation location)
-	{
-		super(location);
-	}
+	/**
+	 * When the class is initialized, we call the ConfigBase init method, which
+	 * uses the properties file passed to update the static fields above.
+	 */
 
-	@Override
-	public String toString()
+	public static void init()
 	{
-		StringBuilder sb = new StringBuilder();
-		sb.append("||(\n");
-		sb.append(super.toString());
-		sb.append(")");
-		return sb.toString();
-	}
-
-	@Override
-	public String kind()
-	{
-		return "non-deterministic";
-	}
-
-	@Override
-	public Value eval(Context ctxt)
-	{
-		breakpoint.check(location, ctxt);
-		return evalBlock(ctxt);
+		try
+		{
+			init("vdmj.properties", Properties.class);
+		}
+		catch (Exception e)
+		{
+			// Silently use default config values if no properties file.
+		}
 	}
 }
