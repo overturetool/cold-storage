@@ -21,8 +21,9 @@
  *
  ******************************************************************************/
 
-package org.overturetool.vdmj.runtime;
+package org.overturetool.vdmj.scheduler;
 
+import org.overturetool.vdmj.runtime.ValueException;
 import org.overturetool.vdmj.values.Value;
 
 public class MessageResponse extends MessagePacket

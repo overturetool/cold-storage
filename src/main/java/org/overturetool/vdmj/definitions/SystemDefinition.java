@@ -28,18 +28,17 @@ import java.util.HashMap;
 import org.overturetool.vdmj.expressions.UndefinedExpression;
 import org.overturetool.vdmj.lex.LexNameList;
 import org.overturetool.vdmj.lex.LexNameToken;
-import org.overturetool.vdmj.messages.RTLogger;
 import org.overturetool.vdmj.runtime.Context;
 import org.overturetool.vdmj.runtime.ContextException;
 import org.overturetool.vdmj.runtime.ValueException;
+import org.overturetool.vdmj.scheduler.ResourceScheduler;
 import org.overturetool.vdmj.typechecker.Environment;
-import org.overturetool.vdmj.types.ClassType;
-import org.overturetool.vdmj.types.Type;
-import org.overturetool.vdmj.types.UndefinedType;
 import org.overturetool.vdmj.types.UnresolvedType;
 import org.overturetool.vdmj.values.BUSValue;
 import org.overturetool.vdmj.values.CPUValue;
 import org.overturetool.vdmj.values.ObjectValue;
+import org.overturetool.vdmj.values.QuoteValue;
+import org.overturetool.vdmj.values.RealValue;
 import org.overturetool.vdmj.values.UpdatableValue;
 import org.overturetool.vdmj.values.ValueList;
 
@@ -105,36 +104,11 @@ public class SystemDefinition extends ClassDefinition
 		}
 	}
 
-	public void CPUdecls()
-	{
-		int cpuNumber = 1;
-
-		for (Definition d: definitions)
-		{
-			Type t = d.getType();
-
-			if (t instanceof ClassType)
-			{
-				InstanceVariableDefinition ivd = (InstanceVariableDefinition)d;
-				ClassType ct = (ClassType)t;
-
-				if (ct.classdef instanceof CPUClassDefinition)
-				{
-    				RTLogger.log(
-    					"CPUdecl -> id: " + (cpuNumber++) +
-    					" expl: " + !(ivd.expType instanceof UndefinedType) +
-    					" sys: \"" + name.name + "\"" +
-    					" name: \"" + d.name.name + "\"");
-				}
-			}
-		}
-	}
-
-	public void init(Context ctxt)
+	public void init(ResourceScheduler scheduler, Context ctxt)
 	{
 		try
 		{
-			// Run the constructor to do any deploys.
+			// Run the constructor to do any deploys etc.
 
 			ObjectValue system = makeNewInstance(null, new ValueList(),
     				ctxt, new HashMap<LexNameToken, ObjectValue>());
@@ -143,60 +117,63 @@ public class SystemDefinition extends ClassDefinition
 
 			for (Definition d: definitions)
 			{
-				Type t = d.getType();
-
-				if (t instanceof ClassType)
+				if (d instanceof CPUClassDefinition)
 				{
+					CPUClassDefinition cd = (CPUClassDefinition)d;
 					UpdatableValue v = (UpdatableValue)system.members.get(d.name);
-					ClassType ct = (ClassType)t;
+					CPUValue cpu = null;
 
-					if (ct.classdef instanceof CPUClassDefinition)
+					if (v.isUndefined())
 					{
-						CPUValue cpu = null;
+						ValueList args = new ValueList();
 
-						if (v.isUndefined())
-						{
-							cpu = CPUClassDefinition.newCPU();
-							v.set(location, cpu, null);
-						}
-						else
-						{
-							cpu = (CPUValue)v.deref();
-						}
+						args.add(new QuoteValue("FCFS"));	// Default policy
+						args.add(new RealValue(0));			// Default speed
 
-	    				cpu.setName(d.name.name);
+						cpu = (CPUValue)cd.newInstance(null, args, ctxt);
+						v.set(location, cpu, ctxt);
 					}
+					else
+					{
+						cpu = (CPUValue)v.deref();
+					}
+
+					// Set the name and scheduler for the CPU resource, and
+					// associate the resource with the scheduler.
+
+					cpu.setup(scheduler, d.name.name);
 				}
 			}
-
-			// We can create this now that all the CPUs have been created
-			BUSClassDefinition.virtualBUS = BUSClassDefinition.newDefaultBUS();
 
 			for (Definition d: definitions)
 			{
-				Type t = d.getType();
-
-				if (t instanceof ClassType)
+				if (d instanceof BUSClassDefinition)
 				{
-					ClassType ct = (ClassType)t;
+					BUSClassDefinition bd = (BUSClassDefinition)d;
+					UpdatableValue v = (UpdatableValue)system.members.get(d.name);
+    				BUSValue bus = null;
 
-					if (ct.classdef instanceof BUSClassDefinition)
+					if (!v.isUndefined())
 					{
-						UpdatableValue v = (UpdatableValue)system.members.get(d.name);
-	    				BUSValue bus = null;
+						ValueList args = new ValueList();
 
-						if (!v.isUndefined())
-						{
-							bus = (BUSValue)v.deref();
-							bus.setName(d.name.name);
-							RTLogger.log(bus.declString());
-						}
+						args.add(new QuoteValue("FCFS"));	// Default policy
+						args.add(new RealValue(0));			// Default speed
+
+						bus = (BUSValue)bd.newInstance(null, args, ctxt);
+						v.set(location, bus, ctxt);
 					}
+					else
+					{
+						bus = (BUSValue)v.deref();
+					}
+
+					// Set the name and scheduler for the BUS resource, and
+					// associate the resource with the scheduler.
+
+					bus.setup(scheduler, d.name.name);
 				}
 			}
-
-			// Now we can create the CPU-BUS map as everything is initialized
-			BUSClassDefinition.createMap(ctxt);
 		}
 		catch (ContextException e)
 		{

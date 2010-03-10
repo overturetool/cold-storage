@@ -35,7 +35,6 @@ import org.overturetool.vdmj.definitions.ClassList;
 import org.overturetool.vdmj.lex.Dialect;
 import org.overturetool.vdmj.messages.RTLogger;
 import org.overturetool.vdmj.runtime.ClassInterpreter;
-import org.overturetool.vdmj.runtime.VDMThreadSet;
 
 
 /**
@@ -113,7 +112,7 @@ public class ClassCommandReader extends CommandReader
 	@Override
 	protected boolean doThreads(String line)
 	{
-		print(VDMThreadSet.getStatus());
+		print(interpreter.scheduler.toString());
 		return true;
 	}
 

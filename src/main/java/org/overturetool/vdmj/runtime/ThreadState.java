@@ -25,6 +25,7 @@ package org.overturetool.vdmj.runtime;
 
 import org.overturetool.vdmj.debug.DBGPReader;
 import org.overturetool.vdmj.lex.LexLocation;
+import org.overturetool.vdmj.scheduler.SchedulableThread;
 import org.overturetool.vdmj.values.CPUValue;
 
 /**
@@ -37,7 +38,6 @@ public class ThreadState
 	public final DBGPReader dbgp;
 	public final CPUValue CPU;
 
-	private long timesliceLeft = 0;
 	private boolean atomic = false;		// don't reschedule
 
 	public InterruptAction action;
@@ -87,15 +87,10 @@ public class ThreadState
 
 	public void reschedule()	// Called for VDM_RT at every statement/expression
 	{
-		if (CPUValue.stopping)
+		if (!atomic)
 		{
-			// We can't be the main thread, as that is stopping anyway
-			throw new RTException("CPU Stopping");
-		}
-
-		if (!atomic && --timesliceLeft < 0)
-		{
-			timesliceLeft = CPU.reschedule();
+			SchedulableThread s = (SchedulableThread)Thread.currentThread();
+			s.step();
 		}
 	}
 

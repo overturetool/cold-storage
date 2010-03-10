@@ -23,180 +23,89 @@
 
 package org.overturetool.vdmj.values;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 
-import org.overturetool.vdmj.Settings;
-import org.overturetool.vdmj.lex.Dialect;
-import org.overturetool.vdmj.messages.RTLogger;
-import org.overturetool.vdmj.runtime.AsyncThread;
-import org.overturetool.vdmj.runtime.BUSPolicy;
-import org.overturetool.vdmj.runtime.ControlQueue;
-import org.overturetool.vdmj.runtime.MessageRequest;
-import org.overturetool.vdmj.runtime.MessageResponse;
+import org.overturetool.vdmj.scheduler.CPUResource;
+import org.overturetool.vdmj.scheduler.MessageRequest;
+import org.overturetool.vdmj.scheduler.MessageResponse;
+import org.overturetool.vdmj.scheduler.BUSResource;
+import org.overturetool.vdmj.scheduler.ResourceScheduler;
+import org.overturetool.vdmj.scheduler.SchedulingPolicy;
 import org.overturetool.vdmj.types.ClassType;
-import org.overturetool.vdmj.types.Type;
 
 public class BUSValue extends ObjectValue
 {
 	private static final long serialVersionUID = 1L;
-	private static int nextBUS = 1;
-	public static List<BUSValue> allBUSSES;
+	private static List<BUSValue> busses = new LinkedList<BUSValue>();
+	public static BUSValue vBUS = null;
+	public final BUSResource resource;
 
-	public final int busNumber;
-	public final BUSPolicy policy;
-	public final double speed;
-	public final ValueSet cpus;
-
-	public String name;
-	public ControlQueue cq;
-
-	public static void init()
+	public BUSValue(ClassType classtype, NameValuePairMap map, ValueList argvals)
 	{
-		nextBUS = 1;
-		allBUSSES = new Vector<BUSValue>();
-	}
+		super(classtype, map, new Vector<ObjectValue>(), null);
 
-	public static void resetAll()
-	{
-		if (Settings.dialect == Dialect.VDM_RT)
+		QuoteValue parg = (QuoteValue)argvals.get(0);
+		SchedulingPolicy policy = SchedulingPolicy.factory(parg.value.toUpperCase());
+
+		RealValue sarg = (RealValue)argvals.get(1);
+		double speed = sarg.value;
+
+		SetValue set = (SetValue)argvals.get(2);
+		List<CPUResource> cpulist = new Vector<CPUResource>();
+
+		for (Value v: set.values)
 		{
-    		for (BUSValue bus: allBUSSES)
-    		{
-    			bus.reset();
-    		}
+			CPUValue cpuv = (CPUValue)v;
+			cpulist.add(cpuv.resource);
 		}
+
+		resource = new BUSResource(policy, speed, cpulist);
 	}
 
-	public void reset()
+	public static BUSValue findBus(CPUValue from, CPUValue to)
 	{
-		cq = new ControlQueue();
+		for (BUSValue bus : busses)
+		{
+			if (bus.resource.links(from.resource, to.resource))
+			{
+				return bus;
+			}
+		}
+
+		return vBUS;
 	}
 
-	public BUSValue(Type classtype, NameValuePairMap map, ValueList argvals)
+	public void setup(ResourceScheduler scheduler, String name)
 	{
-		super((ClassType)classtype, map, new Vector<ObjectValue>(), null);
-
-		this.busNumber = nextBUS++;
-
-		QuoteValue parg = (QuoteValue)argvals.get(0);
-		this.policy = BUSPolicy.valueOf(parg.value.toUpperCase());
-
-		RealValue sarg = (RealValue)argvals.get(1);
-		this.speed = sarg.value;
-
-		SetValue set = (SetValue)argvals.get(2);
-		this.cpus = set.values;
-
-		allBUSSES.add(this);
-	}
-
-	public BUSValue(
-		int number, Type classtype, NameValuePairMap map, ValueList argvals)
-	{
-		super((ClassType)classtype, map, new Vector<ObjectValue>(), null);
-
-		this.busNumber = number;
-
-		QuoteValue parg = (QuoteValue)argvals.get(0);
-		this.policy = BUSPolicy.valueOf(parg.value.toUpperCase());
-
-		RealValue sarg = (RealValue)argvals.get(1);
-		this.speed = sarg.value;
-
-		SetValue set = (SetValue)argvals.get(2);
-		this.cpus = set.values;
-
-		allBUSSES.add(this);
+		resource.setName(name);
+		scheduler.register(resource);
 	}
 
 	public void transmit(MessageRequest request)
 	{
-		cq.join(request.from);
-
-		RTLogger.log(
-			"MessageRequest -> busid: " + request.bus.busNumber +
-			" fromcpu: " + request.from.cpuNumber +
-			" tocpu: " + request.to.cpuNumber +
-			" msgid: " + request.msgId +
-			" callthr: " + request.thread.getId() +
-			" opname: " + "\"" + request.operation.name + "\"" +
-			" objref: " + request.target.objectReference +
-			" size: " + request.getSize());
-
-		RTLogger.log(
-			"MessageActivate -> msgid: " + request.msgId);
-
-		if (request.bus.busNumber > 0)
-		{
-			long pause = request.args.toString().length();
-			request.from.duration(pause);
-		}
-
-		RTLogger.log(
-			"MessageCompleted -> msgid: " + request.msgId);
-
-		AsyncThread thread = new AsyncThread(request);
-		thread.start();
-
-		cq.leave();
+		resource.transmit(request);
 	}
 
 	public void reply(MessageResponse response)
 	{
-		cq.join(response.from);
-
-		RTLogger.log(
-			"ReplyRequest -> busid: " + response.bus.busNumber +
-			" fromcpu: " + response.from.cpuNumber +
-			" tocpu: " + response.to.cpuNumber +
-			" msgid: " + response.msgId +
-			" origmsgid: " + response.originalId +
-			" callthr: " + response.caller.getId() +
-			" calleethr: " + response.thread.getId() +
-			" size: " + response.getSize());
-
-		RTLogger.log(
-			"MessageActivate -> msgid: " + response.msgId);
-
-		if (response.bus.busNumber > 0)
-		{
-			long pause = response.getSize();
-			response.from.duration(pause);
-		}
-
-		RTLogger.log(
-			"MessageCompleted -> msgid: " + response.msgId);
-
-		response.replyTo.set(response);
-
-		cq.leave();
-	}
-
-	public void setName(String name)
-	{
-		this.name = name;
+		resource.reply(response);
 	}
 
 	@Override
 	public String toString()
 	{
-		return name;
+		return resource.toString();
 	}
 
-	public String declString() throws Exception
+	public boolean isVirtual()
 	{
-		ValueSet set = new ValueSet();
+		return resource.isVirtual();
+	}
 
-		for (Value v: cpus)
-		{
-			CPUValue cpu = (CPUValue)v.deref();
-			set.add(new NaturalValue(cpu.cpuNumber));
-		}
-
-		return
-			"BUSdecl -> id: " + busNumber +
-			" topo: " + set +
-			" name: \"" + name + "\"";
+	public static void init()
+	{
+		BUSResource.init();
 	}
 }

@@ -42,10 +42,14 @@ import org.overturetool.vdmj.pog.ProofObligationList;
 import org.overturetool.vdmj.runtime.ContextException;
 import org.overturetool.vdmj.runtime.RootContext;
 import org.overturetool.vdmj.runtime.StateContext;
-import org.overturetool.vdmj.runtime.SystemClock;
+import org.overturetool.vdmj.scheduler.CPUResource;
+import org.overturetool.vdmj.scheduler.ResourceScheduler;
+import org.overturetool.vdmj.scheduler.SystemClock;
 import org.overturetool.vdmj.statements.Statement;
 import org.overturetool.vdmj.typechecker.Environment;
 import org.overturetool.vdmj.typechecker.NameScope;
+import org.overturetool.vdmj.values.BUSValue;
+import org.overturetool.vdmj.values.CPUValue;
 import org.overturetool.vdmj.values.TransactionValue;
 
 
@@ -151,7 +155,7 @@ public class ClassList extends Vector<ClassDefinition>
 		}
 	}
 
-	public RootContext initialize(DBGPReader dbgp)
+	public RootContext initialize(ResourceScheduler scheduler, DBGPReader dbgp)
 	{
 		SystemDefinition systemClass = null;
 		StateContext globalContext = null;
@@ -176,19 +180,14 @@ public class ClassList extends Vector<ClassDefinition>
     				systemClass = (SystemDefinition)cdef;
     			}
 			}
-
-			SystemClock.init();				// Set time back to zero
-			CPUClassDefinition.init();
-			BUSClassDefinition.init();
-			CPUClassDefinition.virtualCPU.swapinMainThread();
-
-			if (systemClass != null)
-			{
-				systemClass.CPUdecls();
-			}
 		}
 
-		globalContext.setThreadState(dbgp, CPUClassDefinition.virtualCPU);
+		SystemClock.init();		// Set time back to zero
+		CPUValue.init();		// Clear CPU counter etc.
+		BUSValue.init();		// Clear BUS counter etc.
+		scheduler.register(CPUResource.vCPU);
+
+		globalContext.setThreadState(dbgp, null);
 
 		// Initialize all the functions/operations first because the values
 		// "statics" can call them.
@@ -244,7 +243,7 @@ public class ClassList extends Vector<ClassDefinition>
 
 		if (systemClass != null)
 		{
-			systemClass.init(globalContext);
+			systemClass.init(scheduler, globalContext);
 			TransactionValue.commitAll();
 		}
 

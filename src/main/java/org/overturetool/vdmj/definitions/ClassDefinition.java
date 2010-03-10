@@ -35,7 +35,6 @@ import org.overturetool.vdmj.lex.LexLocation;
 import org.overturetool.vdmj.lex.LexNameList;
 import org.overturetool.vdmj.lex.LexNameToken;
 import org.overturetool.vdmj.lex.Token;
-import org.overturetool.vdmj.messages.RTLogger;
 import org.overturetool.vdmj.patterns.PatternList;
 import org.overturetool.vdmj.pog.POContextStack;
 import org.overturetool.vdmj.pog.ProofObligationList;
@@ -1279,10 +1278,7 @@ public class ClassDefinition extends Definition
 
 		if (Settings.dialect ==	Dialect.VDM_RT)
 		{
-   			RTLogger.log(
-				"DeployObj -> objref: " + object.objectReference +
-				" clnm: \"" + object.type.name.name + "\"" +
-				" cpunm: " + object.getCPU().cpuNumber);
+			object.getCPU().deploy(object);
 		}
 
 		if (ctor != null)	// Class may have no constructor defined

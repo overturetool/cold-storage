@@ -32,13 +32,12 @@ import java.util.List;
 import java.util.Vector;
 
 import org.overturetool.vdmj.Settings;
-import org.overturetool.vdmj.definitions.CPUClassDefinition;
 import org.overturetool.vdmj.lex.Dialect;
 import org.overturetool.vdmj.lex.LexNameToken;
 import org.overturetool.vdmj.messages.InternalException;
-import org.overturetool.vdmj.runtime.CPUThread;
 import org.overturetool.vdmj.runtime.Context;
 import org.overturetool.vdmj.runtime.ValueException;
+import org.overturetool.vdmj.scheduler.ControlQueue;
 import org.overturetool.vdmj.types.ClassType;
 import org.overturetool.vdmj.types.Type;
 import org.overturetool.vdmj.types.TypeList;
@@ -55,9 +54,9 @@ public class ObjectValue extends Value
 	public final ClassType type;
 	public final NameValuePairMap members;
 	public final List<ObjectValue> superobjects;
-	public final List<CPUThread> guardWaiters;
+	public final List<ControlQueue> guardCQs;
 
-	private CPUValue CPU = null;
+	private CPUValue CPU;
 	private Object delegateObject = null;
 
 	public ObjectValue(ClassType type,
@@ -69,13 +68,13 @@ public class ObjectValue extends Value
 		this.superobjects = superobjects;
 		this.CPU = cpu;
 
-		if (Settings.dialect == Dialect.VDM_RT)
+		if (Settings.dialect != Dialect.VDM_SL)
 		{
-			this.guardWaiters = new LinkedList<CPUThread>();
+			this.guardCQs = new LinkedList<ControlQueue>();
 		}
 		else
 		{
-			this.guardWaiters = null;
+			this.guardCQs = null;
 		}
 
 		setSelf(this);
@@ -438,7 +437,7 @@ public class ObjectValue extends Value
 
 	public synchronized CPUValue getCPU()
 	{
-		return CPU == null ? CPUClassDefinition.virtualCPU : CPU;
+		return CPU == null ? CPUValue.vCPU : CPU;
 	}
 
 	public boolean hasDelegate()

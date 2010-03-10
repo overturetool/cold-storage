@@ -27,7 +27,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import org.overturetool.vdmj.definitions.CPUClassDefinition;
 import org.overturetool.vdmj.expressions.Expression;
 import org.overturetool.vdmj.lex.Dialect;
 import org.overturetool.vdmj.lex.LexTokenReader;
@@ -37,6 +36,7 @@ import org.overturetool.vdmj.runtime.Interpreter;
 import org.overturetool.vdmj.runtime.ValueException;
 import org.overturetool.vdmj.syntax.ExpressionReader;
 import org.overturetool.vdmj.values.BooleanValue;
+import org.overturetool.vdmj.values.CPUValue;
 import org.overturetool.vdmj.values.CharacterValue;
 import org.overturetool.vdmj.values.NilValue;
 import org.overturetool.vdmj.values.SeqValue;
@@ -116,7 +116,7 @@ public class IO
 
 			result.add(new BooleanValue(true));
 			Context ectxt = new Context(null, "freadval", null);
-			ectxt.setThreadState(null, CPUClassDefinition.virtualCPU);
+			ectxt.setThreadState(null, CPUValue.vCPU);
 			result.add(exp.eval(ectxt));
 		}
 		catch (Exception e)

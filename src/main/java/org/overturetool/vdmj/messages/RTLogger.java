@@ -27,7 +27,7 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.Vector;
 
-import org.overturetool.vdmj.runtime.SystemClock;
+import org.overturetool.vdmj.scheduler.SystemClock;
 
 public class RTLogger
 {
@@ -48,7 +48,7 @@ public class RTLogger
 	public static synchronized void log(String event)
 	{
 		event = event + " time: " + SystemClock.getWallTime();
-		
+
 		if (!enabled)
 		{
 			return;

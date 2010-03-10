@@ -26,28 +26,37 @@ package org.overturetool.vdmj.runtime;
 import org.overturetool.vdmj.Settings;
 import org.overturetool.vdmj.debug.DBGPReader;
 import org.overturetool.vdmj.debug.DBGPReason;
+import org.overturetool.vdmj.expressions.Expression;
 import org.overturetool.vdmj.lex.LexLocation;
+import org.overturetool.vdmj.scheduler.CPUResource;
+import org.overturetool.vdmj.scheduler.SchedulableThread;
 import org.overturetool.vdmj.values.CPUValue;
 import org.overturetool.vdmj.values.ObjectValue;
 import org.overturetool.vdmj.values.OperationValue;
+import org.overturetool.vdmj.values.TransactionValue;
+import org.overturetool.vdmj.values.Value;
 import org.overturetool.vdmj.values.ValueList;
 
 /**
  * A class representing a VDM thread.
  */
 
-public class VDMThread extends Thread
+public class MainThread extends SchedulableThread
 {
 	public final ObjectValue object;
 	public final OperationValue operation;
 	public final Context ctxt;
 	public final String title;
 	public final boolean breakAtStart;
+	public final Expression expression;
 
-	public VDMThread(LexLocation location, ObjectValue object, Context ctxt)
+	private Value result = null;
+	private Exception exception = null;
+
+	public MainThread(LexLocation location, ObjectValue object, Context ctxt)
 		throws ValueException
 	{
-		super("Object #" + object.objectReference);
+		super(object.getCPU().resource, object, 0, false, 0);
 
 		this.title =
 			"Thread " + getId() +
@@ -58,8 +67,19 @@ public class VDMThread extends Thread
 		this.ctxt = new ObjectContext(location, title, ctxt.getGlobal(), object);
 		this.operation = object.getThreadOperation(ctxt);
 		this.breakAtStart = ctxt.threadState.isStepping();
+		this.expression = null;
+	}
 
-		VDMThreadSet.add(this);
+	public MainThread(Expression expr, Context ctxt)
+	{
+		super(CPUResource.vCPU, null, 0, false, 0);
+
+		this.object = null;
+		this.operation = null;
+		this.title = "main";
+		this.expression = expr;
+		this.ctxt = ctxt;
+		this.breakAtStart = false;
 	}
 
 	@Override
@@ -69,7 +89,7 @@ public class VDMThread extends Thread
 	}
 
 	@Override
-	public void run()
+	public void body()
 	{
 		if (Settings.usingDBGP)
 		{
@@ -85,35 +105,27 @@ public class VDMThread extends Thread
 	{
 		try
 		{
-			ctxt.setThreadState(null, operation.getCPU());
-
-			if (breakAtStart)
+			if (expression != null)
 			{
-				// Step at the first location you check (start of body)
-				ctxt.threadState.setBreaks(new LexLocation(), null, null);
+				result = expression.eval(ctxt);
+				TransactionValue.commitAll();
 			}
+			else
+			{
+     			ctxt.setThreadState(null, operation.getCPU());
 
-			operation.eval(ctxt.location, new ValueList(), ctxt);
-		}
-		catch (StopException e)
-		{
-			// OK...
-		}
-		catch (ValueException e)
-		{
-			Interpreter.stop(null, e, e.ctxt);
-		}
-		catch (ContextException e)
-		{
-			Interpreter.stop(e.location, e, e.ctxt);
+    			if (breakAtStart)
+    			{
+    				// Step at the first location you check (start of body)
+    				ctxt.threadState.setBreaks(new LexLocation(), null, null);
+    			}
+
+    			result = operation.eval(ctxt.location, new ValueList(), ctxt);
+			}
 		}
 		catch (Exception e)
 		{
-			Interpreter.stop(null, e, ctxt);
-		}
-		finally
-		{
-			VDMThreadSet.remove(this);
+			exception = e;
 		}
 	}
 
@@ -123,17 +135,26 @@ public class VDMThread extends Thread
 
 		try
 		{
-			CPUValue cpu = operation.getCPU();
-			reader = ctxt.threadState.dbgp.newThread(cpu);
-			ctxt.setThreadState(reader, cpu);
-
-			if (breakAtStart)
+			if (exception != null)
 			{
-				// Step at the first location you check (start of body)
-				ctxt.threadState.setBreaks(new LexLocation(), null, null);
+				result = expression.eval(ctxt);
+				TransactionValue.commitAll();
+			}
+			else
+			{
+    			CPUValue cpu = operation.getCPU();
+    			reader = ctxt.threadState.dbgp.newThread(cpu);
+    			ctxt.setThreadState(reader, cpu);
+
+    			if (breakAtStart)
+    			{
+    				// Step at the first location you check (start of body)
+    				ctxt.threadState.setBreaks(new LexLocation(), null, null);
+    			}
+
+    			result = operation.eval(ctxt.location, new ValueList(), ctxt);
 			}
 
-			operation.eval(ctxt.location, new ValueList(), ctxt);
 			reader.complete(DBGPReason.OK, null);
 		}
 		catch (ContextException e)
@@ -147,33 +168,15 @@ public class VDMThread extends Thread
 				reader.complete(DBGPReason.EXCEPTION, null);
 			}
 		}
-		finally
+	}
+
+	public Value getResult() throws Exception
+	{
+		if (exception != null)
 		{
-			VDMThreadSet.remove(this);
+			throw exception;
 		}
-	}
 
-	public synchronized void block()
-	{
-		ctxt.threadState.action = InterruptAction.SUSPENDED;
-		interrupt();
-	}
-
-	public synchronized void unblock()
-	{
-		ctxt.threadState.action = InterruptAction.RUNNING;
-		interrupt();
-	}
-
-	public synchronized void abort()
-	{
-		ctxt.threadState.action = InterruptAction.STOPPING;
-		interrupt();
-	}
-
-	@Override
-	public String toString()
-	{
-		return title + ", state " + ctxt.threadState.action;
+		return result;
 	}
 }

@@ -1,6 +1,6 @@
 /*******************************************************************************
  *
- *	Copyright (c) 2009 Fujitsu Services Ltd.
+ *	Copyright (c) 2010 Fujitsu Services Ltd.
  *
  *	Author: Nick Battle
  *
@@ -21,9 +21,24 @@
  *
  ******************************************************************************/
 
-package org.overturetool.vdmj.runtime;
+package org.overturetool.vdmj.scheduler;
 
-public enum RunState
+public class SystemClock
 {
-	CREATED, RUNNABLE, WAITING, TIMESTEP, KILLED
+	private static long wallTime = 0;
+
+	public static synchronized long getWallTime()
+	{
+		return wallTime;
+	}
+
+	public static void init()
+	{
+		wallTime = 0;
+	}
+
+	public static synchronized void advance(long duration)
+	{
+		wallTime += duration;
+	}
 }

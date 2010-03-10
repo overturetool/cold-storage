@@ -26,8 +26,6 @@ package org.overturetool.vdmj.values;
 import java.util.Iterator;
 import java.util.ListIterator;
 import org.overturetool.vdmj.Settings;
-import org.overturetool.vdmj.definitions.BUSClassDefinition;
-import org.overturetool.vdmj.definitions.CPUClassDefinition;
 import org.overturetool.vdmj.definitions.ClassDefinition;
 import org.overturetool.vdmj.definitions.ExplicitOperationDefinition;
 import org.overturetool.vdmj.definitions.ImplicitOperationDefinition;
@@ -43,22 +41,18 @@ import org.overturetool.vdmj.lex.Token;
 import org.overturetool.vdmj.messages.RTLogger;
 import org.overturetool.vdmj.patterns.Pattern;
 import org.overturetool.vdmj.patterns.PatternList;
-import org.overturetool.vdmj.runtime.AsyncThread;
-import org.overturetool.vdmj.runtime.Breakpoint;
-import org.overturetool.vdmj.runtime.CPUThread;
 import org.overturetool.vdmj.runtime.ClassContext;
 import org.overturetool.vdmj.runtime.Context;
-import org.overturetool.vdmj.runtime.Holder;
-import org.overturetool.vdmj.runtime.MessageRequest;
-import org.overturetool.vdmj.runtime.MessageResponse;
 import org.overturetool.vdmj.runtime.ObjectContext;
 import org.overturetool.vdmj.runtime.PatternMatchException;
 import org.overturetool.vdmj.runtime.RootContext;
-import org.overturetool.vdmj.runtime.RunState;
 import org.overturetool.vdmj.runtime.StateContext;
-import org.overturetool.vdmj.runtime.SystemClock;
-import org.overturetool.vdmj.runtime.VDMThreadSet;
 import org.overturetool.vdmj.runtime.ValueException;
+import org.overturetool.vdmj.scheduler.AsyncThread;
+import org.overturetool.vdmj.scheduler.ControlQueue;
+import org.overturetool.vdmj.scheduler.Holder;
+import org.overturetool.vdmj.scheduler.MessageRequest;
+import org.overturetool.vdmj.scheduler.MessageResponse;
 import org.overturetool.vdmj.statements.Statement;
 import org.overturetool.vdmj.types.OperationType;
 import org.overturetool.vdmj.types.PatternListTypePair;
@@ -89,7 +83,7 @@ public class OperationValue extends Value
 	public boolean isAsync = false;
 
 	private Expression guard = null;
-	private static final int DEADLOCK_TIMEOUT_MS = 10000;
+	private ControlQueue guardCQ = new ControlQueue();
 
 	public int hashAct = 0; // Number of activations
 	public int hashFin = 0; // Number of finishes
@@ -193,7 +187,7 @@ public class OperationValue extends Value
 	{
 		if (guard != null)
 		{
-			ValueListener vl = new GuardValueListener<ObjectValue>(self);
+			ValueListener vl = new GuardValueListener(self);
 
 			for (Value v: guard.getValues(ctxt))
 			{
@@ -206,8 +200,6 @@ public class OperationValue extends Value
 	public Value eval(LexLocation from, ValueList argValues, Context ctxt)
 		throws ValueException
 	{
-		VDMThreadSet.stopIfDebugged(from, ctxt);
-
 		if (Settings.dialect == Dialect.VDM_RT)
 		{
 			if (!isStatic && (ctxt.threadState.CPU != self.getCPU() || isAsync))
@@ -260,14 +252,7 @@ public class OperationValue extends Value
 
 		if (guard != null)
 		{
-			if (Settings.dialect == Dialect.VDM_RT)
-			{
-				guardRT(argContext);
-			}
-			else
-			{
-				guardPP(argContext);
-			}
+			guard(argContext);
 		}
 		else
 		{
@@ -417,65 +402,14 @@ public class OperationValue extends Value
 		return rv;
 	}
 
-	private void guardPP(Context ctxt) throws ValueException
+	private void guard(Context ctxt) throws ValueException
 	{
-		synchronized (self)		// So that test and act() are atomic
-		{
-			debug("TEST " + guard);
-			long expires = System.currentTimeMillis() + DEADLOCK_TIMEOUT_MS;
-
-			while (!guard.eval(ctxt).boolValue(ctxt))
-			{
-				try
-				{
-					debug("WAITING on " + guard);
-					self.wait(DEADLOCK_TIMEOUT_MS);
-					debug("RESUME on " + guard);
-
-					long now = System.currentTimeMillis();
-
-					if (!VDMThreadSet.isDebugStopped() && now >= expires)
-					{
-						abort(4067, "Deadlock detected", ctxt);
-					}
-					else
-					{
-						expires = now + DEADLOCK_TIMEOUT_MS;
-					}
-				}
-				catch (InterruptedException e)
-				{
-					debug("INTERRUPT on " + guard);
-					Breakpoint.handleInterrupt(guard.location, ctxt);
-				}
-			}
-
-			act();
-		}
-	}
-
-	private void guardRT(Context ctxt) throws ValueException
-	{
-		// RT deadlocks are detected by time rather than a wait(t) for
-		// a certain number of retries. This is because other threads
-		// on the same CPU have to be allowed to run immediately; we
-		// can't pause the whole CPU with a wait(t) and starve the others.
-
-		long expires = System.currentTimeMillis() + DEADLOCK_TIMEOUT_MS;
-		CPUValue cpu = self.getCPU();
-		CPUThread me = new CPUThread(cpu);
+		guardCQ.join();
 
 		while (true)
 		{
 			synchronized (self)		// So that test and act() are atomic
 			{
-				// For the purpose of doing durations, guard tests
-				// are not really swapped-in threads. So we cheat and
-				// mark the CPU as not-running at this point, which
-				// is cleared again when (below) we pass the guard test.
-
-				SystemClock.cpuRunning(self.getCPU().cpuNumber, false);
-
 				// We have to suspend thread swapping round the guard,
 				// else we will reschedule another CPU thread while
 				// having self locked, and that locks up everything!
@@ -487,37 +421,27 @@ public class OperationValue extends Value
     			if (ok)
     			{
     				act();
-    				SystemClock.cpuRunning(self.getCPU().cpuNumber, true);
     				break;	// Out of while loop
     			}
 			}
 
-			// The waiters list is processed by the GuardValueListener
-			// and by notifySelf.
+			// The guardCQs list is stimmed by the GuardValueListener
+			// and by notifySelf when something changes.
 
-			synchronized (self.guardWaiters)
+			synchronized (self.guardCQs)
 			{
-				self.guardWaiters.add(me);
+				self.guardCQs.add(guardCQ);
 			}
 
-			cpu.yield(RunState.WAITING);
+			guardCQ.block();
 
-			synchronized (self.guardWaiters)
+			synchronized (self.guardCQs)
 			{
-				self.guardWaiters.remove(me);
-			}
-
-			long now = System.currentTimeMillis();
-
-			if (!VDMThreadSet.isDebugStopped() && now > expires)
-			{
-				abort(4067, "Deadlock detected", ctxt);
-			}
-			else
-			{
-				expires = now + DEADLOCK_TIMEOUT_MS;
+				self.guardCQs.remove(guardCQ);
 			}
 		}
+
+		guardCQ.leave();
 	}
 
 	private Value asyncEval(ValueList argValues, Context ctxt) throws ValueException
@@ -537,18 +461,18 @@ public class OperationValue extends Value
 			" opname: \"" + name + "\"" +
 			" objref: " + self.objectReference +
 			" clnm: \"" + self.type.name.name + "\"" +
-			" cpunm: " + from.cpuNumber +
+			" cpunm: " + from.resource.getCpuNumber() +
 			" async: " + isAsync
 			);
 
 		if (from != to)		// Remote CPU call
 		{
-    		BUSValue bus = BUSClassDefinition.findBUS(from, to);
+    		BUSValue bus = BUSValue.findBus(from, to);
 
     		if (bus == null)
     		{
     			abort(4140,
-    				"No BUS between CPUs " + from.name + " and " + to.name, ctxt);
+    				"No BUS between CPUs " + from.resource.name + " and " + to.resource.name, ctxt);
     		}
 
     		if (isAsync)	// Don't wait
@@ -566,7 +490,7 @@ public class OperationValue extends Value
         			bus, from, to, self, this, argValues, result, stepping);
 
         		bus.transmit(request);
-        		MessageResponse reply = result.get(from);
+        		MessageResponse reply = result.get();
         		return reply.getValue();	// Can throw a returned exception
     		}
 		}
@@ -656,44 +580,26 @@ public class OperationValue extends Value
 	private synchronized void act()
 	{
 		hashAct++;
-
-		if (!AsyncThread.stopping())	// else makes a mess of shutdown trace
-		{
-			trace("OpActivate");
-		}
+		trace("OpActivate");
 	}
 
 	private synchronized void fin()
 	{
 		hashFin++;
-
-		if (!AsyncThread.stopping())	// else makes a mess of shutdown trace
-		{
-			trace("OpCompleted");
-		}
+		trace("OpCompleted");
 	}
 
 	private void notifySelf()
 	{
-		if (self != null)
+		if (self != null && self.guardCQs != null)
 		{
-			if (Settings.dialect == Dialect.VDM_RT)
-			{
-				synchronized (self.guardWaiters)
-				{
-    				for (CPUThread th: self.guardWaiters)
-    				{
-    					th.setState(RunState.RUNNABLE);
-    				}
-				}
-			}
-			else
-			{
-    			synchronized (self)
+    		synchronized (self.guardCQs)
+    		{
+    			for (ControlQueue cq: self.guardCQs)
     			{
-    				self.notifyAll();
+    				cq.stim();
     			}
-			}
+    		}
 		}
 	}
 
@@ -719,14 +625,15 @@ public class OperationValue extends Value
         			" opname: \"" + name + "\"" +
         			" objref: " + self.objectReference +
         			" clnm: \"" + self.type.name.name + "\"" +
-        			" cpunm: " + self.getCPU().cpuNumber +
+        			" cpunm: " + self.getCPU().resource.getCpuNumber() +
         			" async: " + isAsync
         			);
 			}
 		}
 	}
 
-	private void debug(@SuppressWarnings("unused") String string)
+	@SuppressWarnings("unused")
+	private void debug(String string)
 	{
 		// Put useful diags here, like print hashReq, hashAct, hashFin...
 	}
@@ -743,7 +650,7 @@ public class OperationValue extends Value
 
 	public synchronized CPUValue getCPU()
 	{
-		return self == null ? CPUClassDefinition.virtualCPU : self.getCPU();
+		return self == null ? CPUValue.vCPU : self.getCPU();
 	}
 
 	public String toTitle()

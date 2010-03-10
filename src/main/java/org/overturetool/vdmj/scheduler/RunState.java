@@ -1,6 +1,6 @@
 /*******************************************************************************
  *
- *	Copyright (c) 2009 Fujitsu Services Ltd.
+ *	Copyright (c) 2010 Fujitsu Services Ltd.
  *
  *	Author: Nick Battle
  *
@@ -21,43 +21,9 @@
  *
  ******************************************************************************/
 
-package org.overturetool.vdmj.runtime;
+package org.overturetool.vdmj.scheduler;
 
-import org.overturetool.vdmj.values.CPUValue;
-
-public class CPUThread
+public enum RunState
 {
-	public final CPUValue cpu;
-	public final Thread thread;
-
-	public CPUThread(CPUValue cpu, Thread thread)
-	{
-		this.cpu = cpu;
-		this.thread = thread;
-	}
-
-	public CPUThread(CPUValue cpu)
-	{
-		this.cpu = cpu;
-		this.thread = Thread.currentThread();
-	}
-
-	@Override
-	public int hashCode()
-	{
-		return (int)(cpu.hashCode() + thread.getId());
-	}
-
-	@Override
-	public boolean equals(Object other)
-	{
-		if (other instanceof CPUThread)
-		{
-			CPUThread co = (CPUThread)other;
-			return cpu.getCPU() == co.cpu.getCPU() &&
-					thread.getId() == co.thread.getId();
-		}
-
-		return false;
-	}
+	CREATED, RUNNABLE, RUNNING, WAITING, TIMESTEP, COMPLETE
 }

@@ -29,13 +29,14 @@ import org.overturetool.vdmj.lex.Dialect;
 import org.overturetool.vdmj.lex.LexLocation;
 import org.overturetool.vdmj.pog.POContextStack;
 import org.overturetool.vdmj.pog.ProofObligationList;
-import org.overturetool.vdmj.runtime.AsyncThread;
 import org.overturetool.vdmj.runtime.ClassInterpreter;
 import org.overturetool.vdmj.runtime.Context;
 import org.overturetool.vdmj.runtime.ObjectContext;
 import org.overturetool.vdmj.runtime.RootContext;
-import org.overturetool.vdmj.runtime.VDMThread;
+import org.overturetool.vdmj.runtime.MainThread;
 import org.overturetool.vdmj.runtime.ValueException;
+import org.overturetool.vdmj.scheduler.AsyncThread;
+import org.overturetool.vdmj.scheduler.PeriodicThread;
 import org.overturetool.vdmj.typechecker.Environment;
 import org.overturetool.vdmj.typechecker.NameScope;
 import org.overturetool.vdmj.types.ClassType;
@@ -170,12 +171,12 @@ public class StartStatement extends Statement
 
 			// Note that periodic threads never set the stepping flag
 
-			new AsyncThread(
-				target, pop, new ValueList(), period, jitter, delay, offset, 0, false).start();
+			new PeriodicThread(
+				target, pop, period, jitter, delay, offset, 0).start();
 		}
 		else
 		{
-			new AsyncThread(target, op, new ValueList(), 0, 0, 0, 0, 0, stepping).start();
+			new AsyncThread(target, op, new ValueList(), stepping).start();
 		}
 	}
 
@@ -191,12 +192,12 @@ public class StartStatement extends Statement
 
 				for (Value v: set)
 				{
-					new VDMThread(location, v.objectValue(ctxt), ctxt).start();
+					new MainThread(location, v.objectValue(ctxt), ctxt).start();
 				}
 			}
 			else
 			{
-				new VDMThread(location, value.objectValue(ctxt), ctxt).start();
+				new MainThread(location, value.objectValue(ctxt), ctxt).start();
 			}
 
 			return new VoidValue();

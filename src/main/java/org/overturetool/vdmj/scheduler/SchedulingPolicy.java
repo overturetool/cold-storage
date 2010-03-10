@@ -21,9 +21,37 @@
  *
  ******************************************************************************/
 
-package org.overturetool.vdmj.runtime;
+package org.overturetool.vdmj.scheduler;
 
-public enum BUSPolicy
+import org.overturetool.vdmj.scheduler.SchedulingPolicy;
+
+abstract public class SchedulingPolicy
 {
-	FCFS, CSMACD
+	protected static final long DEFAULT_TIMESLICE = 100;
+
+	abstract public boolean reschedule();
+	abstract public SchedulableThread getThread();
+	abstract public long getTimeslice();
+	abstract public void register(SchedulableThread thread, long priority);
+	abstract public void unregister(SchedulableThread thread);
+	abstract public void reset();
+	abstract public long getTimestep();
+	abstract public void advance();
+	abstract public boolean hasActive();
+	abstract public boolean hasPriorities();
+	abstract public String getStatus();
+
+	public static SchedulingPolicy factory(String type)
+	{
+		if (type.equals("FP"))
+		{
+			return new FPPolicy();
+		}
+		else if (type.equals("FCFS"))
+		{
+			return new FCFSPolicy();
+		}
+
+		return null;
+	}
 }

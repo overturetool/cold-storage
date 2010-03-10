@@ -21,16 +21,43 @@
  *
  ******************************************************************************/
 
-package org.overturetool.vdmj.runtime;
+package org.overturetool.vdmj.scheduler;
 
-abstract public class SchedulingPolicy
+import java.util.HashMap;
+import java.util.Map;
+
+public class FPPolicy extends FCFSPolicy
 {
-	abstract public boolean hasPriorities();
-	abstract public boolean reschedule();
-	abstract public Thread getThread();
-	abstract public long getTimeslice();
-	abstract public void addThread(Thread thread, long priority);
-	abstract public void removeThread(Thread thread);
-	abstract public void setState(Thread thread, RunState newstate);
-	abstract public void reset();
+	private final Map<SchedulableThread, Long> priorities;
+
+	public FPPolicy()
+	{
+		this.priorities = new HashMap<SchedulableThread, Long>();
+	}
+
+	@Override
+	public void reset()
+	{
+		super.reset();
+		priorities.clear();
+	}
+
+	@Override
+	public synchronized void register(SchedulableThread thread, long priority)
+	{
+		super.register(thread, priority);
+		priorities.put(thread, priority == 0 ? DEFAULT_TIMESLICE : priority);
+	}
+
+	@Override
+	public long getTimeslice()
+	{
+		return priorities.get(bestThread);
+	}
+
+	@Override
+	public boolean hasPriorities()
+	{
+		return true;
+	}
 }

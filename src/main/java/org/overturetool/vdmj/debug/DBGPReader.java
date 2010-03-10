@@ -81,7 +81,6 @@ import org.overturetool.vdmj.runtime.ModuleInterpreter;
 import org.overturetool.vdmj.runtime.ObjectContext;
 import org.overturetool.vdmj.runtime.SourceFile;
 import org.overturetool.vdmj.runtime.StateContext;
-import org.overturetool.vdmj.runtime.VDMThreadSet;
 import org.overturetool.vdmj.statements.Statement;
 import org.overturetool.vdmj.syntax.ParserException;
 import org.overturetool.vdmj.util.Base64;
@@ -566,7 +565,7 @@ public class DBGPReader
 		if (cpu != null)
 		{
 			sb.append(" on ");
-			sb.append(cpu.name);
+			sb.append(cpu.getName());
 		}
 
 		sb.append("\" ");
@@ -1403,10 +1402,7 @@ public class DBGPReader
 	private void processStop(DBGPCommand c) throws DBGPException, IOException
 	{
 		checkArgs(c, 1, false);
-
 		statusResponse(DBGPStatus.STOPPED, DBGPReason.OK);
-		VDMThreadSet.abortAll();
-		CPUValue.abortAll();
 		TransactionValue.commitAll();
 	}
 

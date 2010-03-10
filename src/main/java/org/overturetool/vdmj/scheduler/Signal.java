@@ -1,6 +1,6 @@
 /*******************************************************************************
  *
- *	Copyright (c) 2009 Fujitsu Services Ltd.
+ *	Copyright (c) 2010 Fujitsu Services Ltd.
  *
  *	Author: Nick Battle
  *
@@ -21,22 +21,9 @@
  *
  ******************************************************************************/
 
-package org.overturetool.vdmj.runtime;
+package org.overturetool.vdmj.scheduler;
 
-public enum CPUPolicy
+public enum Signal
 {
-	FP, FCFS;
-
-	public SchedulingPolicy factory()
-	{
-		switch (this)
-		{
-			case FP:
-				return new FPPolicy();
-
-			case FCFS:
-			default:
-				return new FCFSPolicy();
-		}
-	}
+	BREAK, TERMINATE
 }

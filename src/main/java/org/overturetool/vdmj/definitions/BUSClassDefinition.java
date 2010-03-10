@@ -30,33 +30,18 @@ import org.overturetool.vdmj.lex.LexNameList;
 import org.overturetool.vdmj.lex.LexNameToken;
 import org.overturetool.vdmj.lex.LexTokenReader;
 import org.overturetool.vdmj.runtime.Context;
-import org.overturetool.vdmj.runtime.ContextException;
 import org.overturetool.vdmj.syntax.DefinitionReader;
 import org.overturetool.vdmj.syntax.ParserException;
+import org.overturetool.vdmj.types.ClassType;
 import org.overturetool.vdmj.values.BUSValue;
-import org.overturetool.vdmj.values.CPUValue;
 import org.overturetool.vdmj.values.NameValuePairList;
 import org.overturetool.vdmj.values.NameValuePairMap;
 import org.overturetool.vdmj.values.ObjectValue;
-import org.overturetool.vdmj.values.QuoteValue;
-import org.overturetool.vdmj.values.RealValue;
-import org.overturetool.vdmj.values.SetValue;
-import org.overturetool.vdmj.values.Value;
 import org.overturetool.vdmj.values.ValueList;
-import org.overturetool.vdmj.values.ValueSet;
 
 public class BUSClassDefinition extends ClassDefinition
 {
 	private static final long serialVersionUID = 1L;
-	private static BUSClassDefinition instance = null;
-
-	public static BUSValue virtualBUS = null;
-	private static BUSValue[][] cpumap = null;
-
-	public static void init()
-	{
-		BUSValue.init();
-	}
 
 	public BUSClassDefinition() throws ParserException, LexException
 	{
@@ -64,8 +49,6 @@ public class BUSClassDefinition extends ClassDefinition
 			new LexNameToken("CLASS", "BUS", new LexLocation()),
 			new LexNameList(),
 			operationDefs());
-
-		instance = this;
 	}
 
 	private static String defs =
@@ -90,88 +73,6 @@ public class BUSClassDefinition extends ClassDefinition
 		NameValuePairMap map = new NameValuePairMap();
 		map.putAll(nvpl);
 
-		return new BUSValue(classtype, map, argvals);
-	}
-
-	public static BUSValue newBUS()
-	{
-		ValueList args = new ValueList();
-
-		args.add(new QuoteValue("FCFS"));
-		args.add(new RealValue(0));
-		ValueSet cpus = new ValueSet();
-		cpus.addAll(CPUValue.allCPUs);
-		args.add(new SetValue(cpus));
-
-		return new BUSValue(instance.getType(), new NameValuePairMap(), args);
-	}
-
-	public static BUSValue newDefaultBUS()
-	{
-		ValueList args = new ValueList();
-
-		args.add(new QuoteValue("FCFS"));
-		args.add(new RealValue(0));
-		ValueSet cpus = new ValueSet();
-		cpus.addAll(CPUValue.allCPUs);
-		args.add(new SetValue(cpus));
-
-		BUSValue bv = new BUSValue(0, instance.getType(), new NameValuePairMap(), args);
-		bv.setName("BUS:0");
-		return bv;
-	}
-
-	public static BUSValue findBUS(CPUValue cpu1, CPUValue cpu2)
-	{
-		return cpumap[cpu1.cpuNumber][cpu2.cpuNumber];
-	}
-
-	public static void createMap(Context ctxt)
-	{
-		int max = CPUValue.allCPUs.size();
-		cpumap = new BUSValue[max][max];
-
-		for (int i=0; i<max; i++)
-		{
-			cpumap[i][0] = virtualBUS;
-			cpumap[0][i] = virtualBUS;
-		}
-
-		for (BUSValue bus: BUSValue.allBUSSES)
-		{
-			if (bus == virtualBUS)
-			{
-				continue;
-			}
-
-			for (Value v1: bus.cpus)
-			{
-				CPUValue cpu1 = (CPUValue)v1.deref();
-				int n1 = cpu1.cpuNumber;
-
-				for (Value v2: bus.cpus)
-				{
-					CPUValue cpu2 = (CPUValue)v2.deref();
-					int n2 = cpu2.cpuNumber;
-
-					if (n1 == n2)
-					{
-						continue;
-					}
-					else if (cpumap[n1][n2] == null)
-					{
-						cpumap[n1][n2] = bus;
-					}
-					else if (cpumap[n1][n2] != bus)
-					{
-						throw new ContextException(4139,
-							"CPUs " + cpu1.name + " and " + cpu2.name +
-							" connected by " +
-							bus.name + " and " + cpumap[n1][n2].name,
-							ctxt.location, ctxt);
-					}
-				}
-			}
- 		}
+		return new BUSValue((ClassType)classtype, map, argvals);
 	}
 }

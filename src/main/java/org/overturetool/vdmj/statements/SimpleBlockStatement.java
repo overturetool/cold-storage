@@ -34,6 +34,7 @@ import org.overturetool.vdmj.lex.LexLocation;
 import org.overturetool.vdmj.pog.POContextStack;
 import org.overturetool.vdmj.pog.ProofObligationList;
 import org.overturetool.vdmj.runtime.Context;
+import org.overturetool.vdmj.scheduler.SchedulableThread;
 import org.overturetool.vdmj.typechecker.Environment;
 import org.overturetool.vdmj.typechecker.NameScope;
 import org.overturetool.vdmj.types.Type;
@@ -204,7 +205,9 @@ abstract public class SimpleBlockStatement extends Statement
 			for (Statement s: statements)
 			{
 				Value rv = s.eval(ctxt);
-				ctxt.threadState.CPU.duration(time);
+
+				SchedulableThread me = (SchedulableThread)Thread.currentThread();
+				me.duration(time);
 
 				if (!rv.isVoid())
     			{

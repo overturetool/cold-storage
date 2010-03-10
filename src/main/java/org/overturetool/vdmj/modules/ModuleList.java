@@ -37,8 +37,13 @@ import org.overturetool.vdmj.lex.LexLocation;
 import org.overturetool.vdmj.pog.ProofObligationList;
 import org.overturetool.vdmj.runtime.ContextException;
 import org.overturetool.vdmj.runtime.StateContext;
+import org.overturetool.vdmj.scheduler.CPUResource;
+import org.overturetool.vdmj.scheduler.ResourceScheduler;
+import org.overturetool.vdmj.scheduler.SystemClock;
 import org.overturetool.vdmj.statements.Statement;
 import org.overturetool.vdmj.util.Utils;
+import org.overturetool.vdmj.values.BUSValue;
+import org.overturetool.vdmj.values.CPUValue;
 
 
 @SuppressWarnings("serial")
@@ -115,7 +120,7 @@ public class ModuleList extends Vector<Module>
 		return null;
 	}
 
-	public StateContext initialize(DBGPReader dbgp)
+	public StateContext initialize(ResourceScheduler scheduler, DBGPReader dbgp)
 	{
 		StateContext initialContext = null;
 
@@ -129,6 +134,12 @@ public class ModuleList extends Vector<Module>
 			initialContext =
 				new StateContext(this.get(0).name.location, "global environment");
 		}
+
+		SystemClock.init();		// Set time back to zero
+		CPUValue.init();		// Clear CPU counter etc.
+		BUSValue.init();		// Clear BUS counter etc.
+
+		scheduler.register(CPUResource.vCPU);
 
 		initialContext.setThreadState(dbgp, null);
 		ContextException problems = null;

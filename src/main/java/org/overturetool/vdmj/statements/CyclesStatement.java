@@ -30,6 +30,7 @@ import org.overturetool.vdmj.lex.LexLocation;
 import org.overturetool.vdmj.runtime.Context;
 import org.overturetool.vdmj.runtime.ContextException;
 import org.overturetool.vdmj.runtime.ValueException;
+import org.overturetool.vdmj.scheduler.SchedulableThread;
 import org.overturetool.vdmj.typechecker.Environment;
 import org.overturetool.vdmj.typechecker.NameScope;
 import org.overturetool.vdmj.types.Type;
@@ -67,8 +68,9 @@ public class CyclesStatement extends Statement
 				long step = ctxt.threadState.CPU.getDuration(val);
 				ctxt.threadState.setTimestep(step);
 				Value rv = statement.eval(ctxt);
-				ctxt.threadState.CPU.duration(step);
-				ctxt.threadState.setTimestep(0);
+				SchedulableThread me = (SchedulableThread)Thread.currentThread();
+				me.duration(step);
+				ctxt.threadState.setTimestep(-1);
 				return rv;
 			}
 			catch (ValueException e)

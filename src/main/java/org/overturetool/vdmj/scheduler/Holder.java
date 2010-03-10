@@ -21,43 +21,37 @@
  *
  ******************************************************************************/
 
-package org.overturetool.vdmj.runtime;
+package org.overturetool.vdmj.scheduler;
 
-import org.overturetool.vdmj.values.CPUValue;
-
-public class CPUThread
+public class Holder<T>
 {
-	public final CPUValue cpu;
-	public final Thread thread;
+	private ControlQueue cq = new ControlQueue();
+	private T contents = null;
 
-	public CPUThread(CPUValue cpu, Thread thread)
+	public synchronized void set(T object)
 	{
-		this.cpu = cpu;
-		this.thread = thread;
+		contents = object;
+		cq.stim();
 	}
 
-	public CPUThread(CPUValue cpu)
+	public T get()
 	{
-		this.cpu = cpu;
-		this.thread = Thread.currentThread();
-	}
-
-	@Override
-	public int hashCode()
-	{
-		return (int)(cpu.hashCode() + thread.getId());
-	}
-
-	@Override
-	public boolean equals(Object other)
-	{
-		if (other instanceof CPUThread)
+		cq.join();
+		
+		while (contents == null)
 		{
-			CPUThread co = (CPUThread)other;
-			return cpu.getCPU() == co.cpu.getCPU() &&
-					thread.getId() == co.thread.getId();
+			cq.block();
 		}
 
-		return false;
+		T result = null;
+
+		synchronized (this)
+		{
+			result = contents;
+		}
+
+		cq.leave();
+
+		return result;
 	}
 }

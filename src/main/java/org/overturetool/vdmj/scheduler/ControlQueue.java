@@ -1,6 +1,6 @@
 /*******************************************************************************
  *
- *	Copyright (c) 2009 Fujitsu Services Ltd.
+ *	Copyright (c) 2010 Fujitsu Services Ltd.
  *
  *	Author: Nick Battle
  *
@@ -21,64 +21,54 @@
  *
  ******************************************************************************/
 
-package org.overturetool.vdmj.runtime;
+package org.overturetool.vdmj.scheduler;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import org.overturetool.vdmj.values.CPUValue;
-
 public class ControlQueue
 {
-	private CPUThread joined = null;
+	private SchedulableThread joined = null;
 	private boolean stimmed = false;
-	private List<CPUThread> waiters = new LinkedList<CPUThread>();
+	private List<SchedulableThread> waiters = new LinkedList<SchedulableThread>();
 
-	public void join(CPUValue cpu)
+	public void reset()
 	{
-		CPUThread self = new CPUThread(cpu);
-		boolean wait = false;
+		waiters.clear();
+	}
 
-		synchronized (this)
+	public void join()
+	{
+		SchedulableThread th = (SchedulableThread)Thread.currentThread();
+
+		if (joined != null && joined != th)
 		{
-    		if (joined != null && joined != self)
-    		{
-    			waiters.add(self);
-    			wait = true;
-    		}
-    		else
-    		{
-    			joined = self;
-    		}
+			synchronized (waiters)
+			{
+				waiters.add(th);
+			}
+
+			th.waiting();
 		}
 
-		if (wait)
-		{
-			cpu.yield(RunState.WAITING);
-		}
+		joined = th;
 	}
 
 	public void block()
 	{
 		if (stimmed)
 		{
-			synchronized (this)
-			{
-				stimmed = false;
-			}
+			stimmed = false;
 		}
 		else
 		{
-			joined.cpu.yield(RunState.WAITING);
+			joined.waiting();
 		}
 	}
 
 	public void stim()
 	{
-		synchronized (this)
-		{
-			stimmed = true;
-		}
+		stimmed = true;
 
 		if (joined != null)
 		{
@@ -88,15 +78,21 @@ public class ControlQueue
 
 	public void leave()
 	{
-		synchronized (this)
+		joined = null;
+
+		SchedulableThread head = null;
+
+		synchronized (waiters)
 		{
-			joined = null;
+    		if (!waiters.isEmpty())
+    		{
+    			head = waiters.remove(0);
+    		}
 		}
 
-		if (!waiters.isEmpty())
+		if (head != null)
 		{
-			CPUThread w = waiters.remove(0);
-			w.setState(RunState.RUNNABLE);
+			head.setState(RunState.RUNNABLE);
 		}
 	}
 }

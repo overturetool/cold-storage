@@ -169,7 +169,7 @@ public class ModuleInterpreter extends Interpreter
 	@Override
 	public void init(DBGPReader dbgp)
 	{
-		initialContext = modules.initialize(dbgp);
+		initialContext = modules.initialize(scheduler, dbgp);
 	}
 
 	@Override
@@ -197,13 +197,27 @@ public class ModuleInterpreter extends Interpreter
 		Environment env = getGlobalEnvironment();
 		typeCheck(expr, env);
 
-		mainContext = new StateContext(defaultModule.name.location,
-							"module scope",	null, defaultModule.getStateContext());
+		Context mainContext = new StateContext(defaultModule.name.location,
+				"module scope",	null, defaultModule.getStateContext());
+
 		mainContext.putAll(initialContext);
 		mainContext.setThreadState(dbgp, null);
 		clearBreakpointHits();
 
-		return expr.eval(mainContext);
+		scheduler.reset();
+		MainThread main = new MainThread(expr, mainContext);
+		main.start();
+		scheduler.start(main);
+
+		try
+		{
+			return main.getResult();
+		}
+		catch (Exception e)
+		{
+			System.err.println(e);
+			return null;	// TODO FIXME !!
+		}
 	}
 
 	/**

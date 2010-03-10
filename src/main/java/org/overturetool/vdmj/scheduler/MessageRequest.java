@@ -21,35 +21,43 @@
  *
  ******************************************************************************/
 
-package org.overturetool.vdmj.runtime;
+package org.overturetool.vdmj.scheduler;
 
+import org.overturetool.vdmj.values.BUSValue;
 import org.overturetool.vdmj.values.CPUValue;
+import org.overturetool.vdmj.values.ObjectValue;
+import org.overturetool.vdmj.values.OperationValue;
+import org.overturetool.vdmj.values.ValueList;
 
-public class Holder<T>
+public class MessageRequest extends MessagePacket
 {
-	private ControlQueue cq = new ControlQueue();
-	private T contents = null;
+	public final boolean breakAtStart;
+	public final ValueList args;
+	public final Holder<MessageResponse> replyTo;
 
-	public synchronized void set(T object)
+	public MessageRequest(
+		BUSValue bus, CPUValue from, CPUValue to,
+		ObjectValue target,	OperationValue operation,
+		ValueList args, Holder<MessageResponse> replyTo, boolean breakAtStart)
 	{
-		contents = object;
-		cq.stim();
+		super(bus, from, to, target, operation);
+
+		this.breakAtStart = breakAtStart;
+		this.args = args;
+		this.replyTo = replyTo;
 	}
 
-	public T get(CPUValue cpu)
+	public MessageRequest()
 	{
-		cq.join(cpu);
-		cq.block();
+		super();
 
-		T result = null;
+		this.breakAtStart = false;
+		this.args = null;
+		this.replyTo = null;
+	}
 
-		synchronized (this)
-		{
-			result = contents;
-		}
-
-		cq.leave();
-
-		return result;
+	public int getSize()
+	{
+		return args.toString().length();
 	}
 }

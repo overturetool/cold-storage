@@ -30,7 +30,6 @@ import java.util.Vector;
 
 import org.overturetool.vdmj.Settings;
 import org.overturetool.vdmj.debug.DBGPReader;
-import org.overturetool.vdmj.definitions.CPUClassDefinition;
 import org.overturetool.vdmj.definitions.ClassDefinition;
 import org.overturetool.vdmj.definitions.ClassList;
 import org.overturetool.vdmj.definitions.Definition;
@@ -55,13 +54,11 @@ import org.overturetool.vdmj.typechecker.PrivateClassEnvironment;
 import org.overturetool.vdmj.typechecker.PublicClassEnvironment;
 import org.overturetool.vdmj.types.Type;
 import org.overturetool.vdmj.util.Utils;
-import org.overturetool.vdmj.values.BUSValue;
 import org.overturetool.vdmj.values.CPUValue;
 import org.overturetool.vdmj.values.NameValuePair;
 import org.overturetool.vdmj.values.NameValuePairList;
 import org.overturetool.vdmj.values.NameValuePairMap;
 import org.overturetool.vdmj.values.ObjectValue;
-import org.overturetool.vdmj.values.TransactionValue;
 import org.overturetool.vdmj.values.Value;
 
 /**
@@ -154,8 +151,7 @@ public class ClassInterpreter extends Interpreter
 	@Override
 	public void init(DBGPReader dbgp)
 	{
-		VDMThreadSet.init();
-		initialContext = classes.initialize(dbgp);
+		initialContext = classes.initialize(scheduler, dbgp);
 		createdValues = new NameValuePairMap();
 		createdDefinitions = new DefinitionSet();
 	}
@@ -172,22 +168,28 @@ public class ClassInterpreter extends Interpreter
 
 	private Value execute(Expression expr, DBGPReader dbgp)
 	{
-		mainContext = new StateContext(
+		Context mainContext = new StateContext(
 			defaultClass.name.location, "global static scope");
 
 		mainContext.putAll(initialContext);
 		mainContext.putAll(createdValues);
-		mainContext.setThreadState(dbgp, CPUClassDefinition.virtualCPU);
+		mainContext.setThreadState(dbgp, CPUValue.vCPU);
 		clearBreakpointHits();
 
-		CPUValue.resetAll();
-		BUSValue.resetAll();
-		Value rv = expr.eval(mainContext);
-		VDMThreadSet.abortAll();
-		CPUValue.abortAll();
-		TransactionValue.commitAll();
+		scheduler.reset();
+		MainThread main = new MainThread(expr, mainContext);
+		main.start();
+		scheduler.start(main);
 
-		return rv;
+		try
+		{
+			return main.getResult();
+		}
+		catch (Exception e)
+		{
+			System.err.println(e);
+			return null;		// TODO FIXME !!
+		}
 	}
 
 	/**
