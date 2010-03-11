@@ -70,6 +70,8 @@ public abstract class SchedulableThread extends Thread
 		{
 			allThreads.add(this);
 		}
+
+		setName("SchedulableThread-" + getId());
 	}
 
 	@Override

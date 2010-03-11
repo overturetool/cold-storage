@@ -37,7 +37,6 @@ import org.overturetool.vdmj.lex.LexLocation;
 import org.overturetool.vdmj.pog.ProofObligationList;
 import org.overturetool.vdmj.runtime.ContextException;
 import org.overturetool.vdmj.runtime.StateContext;
-import org.overturetool.vdmj.scheduler.CPUResource;
 import org.overturetool.vdmj.scheduler.ResourceScheduler;
 import org.overturetool.vdmj.scheduler.SystemClock;
 import org.overturetool.vdmj.statements.Statement;
@@ -135,11 +134,10 @@ public class ModuleList extends Vector<Module>
 				new StateContext(this.get(0).name.location, "global environment");
 		}
 
-		SystemClock.init();		// Set time back to zero
-		CPUValue.init();		// Clear CPU counter etc.
-		BUSValue.init();		// Clear BUS counter etc.
-
-		scheduler.register(CPUResource.vCPU);
+		scheduler.init();
+		SystemClock.init();
+		CPUValue.init(scheduler);
+		BUSValue.init();
 
 		initialContext.setThreadState(dbgp, null);
 		ContextException problems = null;

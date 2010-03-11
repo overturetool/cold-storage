@@ -209,15 +209,7 @@ public class ModuleInterpreter extends Interpreter
 		main.start();
 		scheduler.start(main);
 
-		try
-		{
-			return main.getResult();
-		}
-		catch (Exception e)
-		{
-			System.err.println(e);
-			return null;	// TODO FIXME !!
-		}
+		return main.getResult();	// Can throw ContextException
 	}
 
 	/**

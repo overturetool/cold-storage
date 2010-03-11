@@ -57,7 +57,7 @@ public class AsyncThread extends SchedulableThread
 			request.operation.getPriority(),
 			false, 0);
 
-		setName("Async Thread " + getId());
+		setName("AsyncThread-" + getId());
 
 		this.self = request.target;
 		this.operation = request.operation;

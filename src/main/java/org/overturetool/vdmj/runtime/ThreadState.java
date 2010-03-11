@@ -89,8 +89,15 @@ public class ThreadState
 	{
 		if (!atomic)
 		{
-			SchedulableThread s = (SchedulableThread)Thread.currentThread();
-			s.step();
+			// Initialization doesn't occur from SchedulableThreads
+
+			Thread current = Thread.currentThread();
+
+			if (current instanceof SchedulableThread)
+			{
+				SchedulableThread s = (SchedulableThread)current;
+				s.step();
+			}
 		}
 	}
 

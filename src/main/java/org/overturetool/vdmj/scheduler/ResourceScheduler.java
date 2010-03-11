@@ -31,6 +31,11 @@ public class ResourceScheduler
 	public String name = "scheduler";
 	private List<Resource> resources = new LinkedList<Resource>();
 
+	public void init()
+	{
+		resources.clear();
+	}
+
 	public void reset()
 	{
 		for (Resource r: resources)

@@ -414,12 +414,14 @@ public class OperationValue extends Value
 				// else we will reschedule another CPU thread while
 				// having self locked, and that locks up everything!
 
+				debug("guard TEST");
 				ctxt.threadState.setAtomic(true);
     			boolean ok = guard.eval(ctxt).boolValue(ctxt);
     			ctxt.threadState.setAtomic(false);
 
     			if (ok)
     			{
+    				debug("guard OK");
     				act();
     				break;	// Out of while loop
     			}
@@ -433,7 +435,9 @@ public class OperationValue extends Value
 				self.guardCQs.add(guardCQ);
 			}
 
+			debug("guard WAIT");
 			guardCQ.block();
+			debug("guard wake");
 
 			synchronized (self.guardCQs)
 			{
@@ -442,6 +446,20 @@ public class OperationValue extends Value
 		}
 
 		guardCQ.leave();
+	}
+
+	private void notifySelf()
+	{
+		if (self != null && self.guardCQs != null)
+		{
+			synchronized (self.guardCQs)
+			{
+				for (ControlQueue cq: self.guardCQs)
+				{
+					cq.stim();
+				}
+			}
+		}
 	}
 
 	private Value asyncEval(ValueList argValues, Context ctxt) throws ValueException
@@ -575,32 +593,22 @@ public class OperationValue extends Value
 		{
 			trace("OpRequest");
 		}
+
+		debug("req");
 	}
 
 	private synchronized void act()
 	{
 		hashAct++;
 		trace("OpActivate");
+		debug("act");
 	}
 
 	private synchronized void fin()
 	{
 		hashFin++;
 		trace("OpCompleted");
-	}
-
-	private void notifySelf()
-	{
-		if (self != null && self.guardCQs != null)
-		{
-    		synchronized (self.guardCQs)
-    		{
-    			for (ControlQueue cq: self.guardCQs)
-    			{
-    				cq.stim();
-    			}
-    		}
-		}
+		debug("fin");
 	}
 
 	private void trace(String kind)
@@ -632,10 +640,10 @@ public class OperationValue extends Value
 		}
 	}
 
-	@SuppressWarnings("unused")
 	private void debug(String string)
 	{
-		// Put useful diags here, like print hashReq, hashAct, hashFin...
+//		System.err.println(String.format("%s %s %s",
+//				Thread.currentThread(), name, string));
 	}
 
 	public synchronized void setPriority(long priority)

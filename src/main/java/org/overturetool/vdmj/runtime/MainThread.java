@@ -51,7 +51,7 @@ public class MainThread extends SchedulableThread
 	public final Expression expression;
 
 	private Value result = null;
-	private Exception exception = null;
+	private RuntimeException exception = null;
 
 	public MainThread(LexLocation location, ObjectValue object, Context ctxt)
 		throws ValueException
@@ -108,7 +108,6 @@ public class MainThread extends SchedulableThread
 			if (expression != null)
 			{
 				result = expression.eval(ctxt);
-				TransactionValue.commitAll();
 			}
 			else
 			{
@@ -123,9 +122,17 @@ public class MainThread extends SchedulableThread
     			result = operation.eval(ctxt.location, new ValueList(), ctxt);
 			}
 		}
-		catch (Exception e)
+		catch (ValueException e)
+		{
+			exception = new ContextException(e, ctxt.location);
+		}
+		catch (RuntimeException e)
 		{
 			exception = e;
+		}
+		finally
+		{
+			TransactionValue.commitAll();
 		}
 	}
 
@@ -168,9 +175,13 @@ public class MainThread extends SchedulableThread
 				reader.complete(DBGPReason.EXCEPTION, null);
 			}
 		}
+		finally
+		{
+			TransactionValue.commitAll();
+		}
 	}
 
-	public Value getResult() throws Exception
+	public Value getResult() throws ContextException
 	{
 		if (exception != null)
 		{

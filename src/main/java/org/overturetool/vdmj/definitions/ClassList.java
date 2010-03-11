@@ -42,7 +42,6 @@ import org.overturetool.vdmj.pog.ProofObligationList;
 import org.overturetool.vdmj.runtime.ContextException;
 import org.overturetool.vdmj.runtime.RootContext;
 import org.overturetool.vdmj.runtime.StateContext;
-import org.overturetool.vdmj.scheduler.CPUResource;
 import org.overturetool.vdmj.scheduler.ResourceScheduler;
 import org.overturetool.vdmj.scheduler.SystemClock;
 import org.overturetool.vdmj.statements.Statement;
@@ -182,10 +181,10 @@ public class ClassList extends Vector<ClassDefinition>
 			}
 		}
 
-		SystemClock.init();		// Set time back to zero
-		CPUValue.init();		// Clear CPU counter etc.
-		BUSValue.init();		// Clear BUS counter etc.
-		scheduler.register(CPUResource.vCPU);
+		scheduler.init();
+		SystemClock.init();
+		CPUValue.init(scheduler);
+		BUSValue.init();
 
 		globalContext.setThreadState(dbgp, null);
 

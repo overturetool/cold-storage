@@ -138,7 +138,8 @@ public class FCFSPolicy extends SchedulingPolicy
 		{
     		for (SchedulableThread th: threads)
     		{
-    			if (th.getRunState() == RunState.TIMESTEP)
+    			if (th.getRunState() == RunState.TIMESTEP ||
+    				th.getRunState() == RunState.WAITING)
     			{
     				return true;
     			}

@@ -62,8 +62,8 @@ public class CPUValue extends ObjectValue
 
 	public void setup(ResourceScheduler scheduler, String name)
 	{
-		resource.setName(name);
 		scheduler.register(resource);
+		resource.setName(name);
 	}
 
 	public void deploy(ObjectValue obj)
@@ -123,17 +123,18 @@ public class CPUValue extends ObjectValue
 		return resource.isVirtual();
 	}
 
-	public static void init()
+	public static void init(ResourceScheduler scheduler)
 	{
 		try
 		{
 			CPUResource.init();
 			CPUClassDefinition def = new CPUClassDefinition();
 			vCPU = new CPUValue((ClassType)def.getType());
+			vCPU.setup(scheduler, "vCPU");
 		}
 		catch (Exception e)
 		{
-			// Parse/lex of builtin ops
+			// Parse/lex of built-in ops. Can't happen.
 		}
 	}
 }
