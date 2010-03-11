@@ -142,10 +142,10 @@ public class MainThread extends SchedulableThread
 
 		try
 		{
-			if (exception != null)
+			if (expression != null)
 			{
+				reader = ctxt.threadState.dbgp;
 				result = expression.eval(ctxt);
-				TransactionValue.commitAll();
 			}
 			else
 			{
