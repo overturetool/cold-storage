@@ -113,9 +113,14 @@ public class CPUValue extends ObjectValue
 		return resource.toString();
 	}
 
-	public Object getName()
+	public String getName()
 	{
-		return resource.name;
+		return resource.getName();
+	}
+
+	public int getNumber()
+	{
+		return resource.getNumber();
 	}
 
 	public boolean isVirtual()

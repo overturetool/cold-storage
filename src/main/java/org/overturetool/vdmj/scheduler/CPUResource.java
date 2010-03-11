@@ -44,7 +44,7 @@ public class CPUResource extends Resource
 
 		running = null;
 
-		if (getCpuNumber() == 0)
+		if (cpuNumber == 0)
 		{
 			vCPU = this;
 		}
@@ -55,11 +55,14 @@ public class CPUResource extends Resource
 	{
 		super.setName(name);
 
-		RTLogger.log(
-			"CPUdecl -> id: " + getCpuNumber() +
-			" expl: " + true +
-			" sys: \"" + scheduler.name + "\"" +
-			" name: \"" + name + "\"");
+		if (cpuNumber != 0)
+		{
+    		RTLogger.log(
+    			"CPUdecl -> id: " + cpuNumber +
+    			" expl: " + true +
+    			" sys: \"" + scheduler.name + "\"" +
+    			" name: \"" + name + "\"");
+		}
 	}
 
 	public static void init()
@@ -72,6 +75,7 @@ public class CPUResource extends Resource
 	public void reset()
 	{
 		running = null;
+		policy.reset();
 	}
 
 	// Find the next thread to schedule and run one timeslice. The return
@@ -92,7 +96,7 @@ public class CPUResource extends Resource
 	    			RTLogger.log(
 	    				"ThreadSwapOut -> id: " + running.getId() +
 	    				objRefString(running.getObject()) +
-	    				" cpunm: " + getCpuNumber() +
+	    				" cpunm: " + cpuNumber +
 	    				" overhead: " + 0);
 				}
 
@@ -104,7 +108,7 @@ public class CPUResource extends Resource
 		        		"DelayedThreadSwapIn -> id: " + best.getId() +
 		        		objRefString(best.getObject()) +
 		        		" delay: " + delay +
-		        		" cpunm: " + getCpuNumber() +
+		        		" cpunm: " + cpuNumber +
 		        		" overhead: " + 0);
 				}
 				else
@@ -112,7 +116,7 @@ public class CPUResource extends Resource
     				RTLogger.log(
     					"ThreadSwapIn -> id: " + best.getId() +
     					objRefString(best.getObject()) +
-    					" cpunm: " + getCpuNumber() +
+    					" cpunm: " + cpuNumber +
     					" overhead: " + 0);
 				}
 			}
@@ -125,12 +129,12 @@ public class CPUResource extends Resource
     			RTLogger.log(
     				"ThreadSwapOut -> id: " + running.getId() +
     				objRefString(running.getObject()) +
-    				" cpunm: " + getCpuNumber() +
+    				" cpunm: " + cpuNumber +
     				" overhead: " + 0);
 
     			RTLogger.log(
 					"ThreadKill -> id: " + running.getId() +
-					" cpunm: " + getCpuNumber());
+					" cpunm: " + cpuNumber);
 
     			running = null;
 			}
@@ -155,7 +159,7 @@ public class CPUResource extends Resource
 			"ThreadCreate -> id: " + th.getId() +
 			" period: " + th.isPeriodic() +
 			objRefString(th.getObject()) +
-			" cpunm: " + getCpuNumber());
+			" cpunm: " + cpuNumber);
 	}
 
 	public void deploy(ObjectValue object)
@@ -163,7 +167,7 @@ public class CPUResource extends Resource
 		RTLogger.log(
 			"DeployObj -> objref: " + object.objectReference +
 			" clnm: \"" + object.type + "\"" +
-			" cpunm: " + getCpuNumber());
+			" cpunm: " + cpuNumber);
 	}
 
 	private String objRefString(ObjectValue obj)
@@ -178,7 +182,7 @@ public class CPUResource extends Resource
 		return (long)(cycles/clock + 1);		// Same as VDMTools
 	}
 
-	public int getCpuNumber()
+	public int getNumber()
 	{
 		return cpuNumber;
 	}

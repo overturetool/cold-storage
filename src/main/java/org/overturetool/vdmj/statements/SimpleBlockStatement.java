@@ -197,16 +197,19 @@ abstract public class SimpleBlockStatement extends Statement
 	{
 		// Note, no breakpoint check - designed to be called by eval
 
+		Thread current = Thread.currentThread();
+
 		if (Settings.dialect == Dialect.VDM_RT &&
-			ctxt.threadState.getTimestep() < 0)
+			ctxt.threadState.getTimestep() < 0 &&
+			current instanceof SchedulableThread)
 		{
 			int time = Properties.rt_duration_default;
+			SchedulableThread me = (SchedulableThread)current;
 
 			for (Statement s: statements)
 			{
 				Value rv = s.eval(ctxt);
 
-				SchedulableThread me = (SchedulableThread)Thread.currentThread();
 				me.duration(time);
 
 				if (!rv.isVoid())

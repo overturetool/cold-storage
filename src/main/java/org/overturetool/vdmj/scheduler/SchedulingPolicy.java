@@ -47,11 +47,7 @@ abstract public class SchedulingPolicy
 		{
 			return new FPPolicy();
 		}
-		else if (type.equals("FCFS"))
-		{
-			return new FCFSPolicy();
-		}
 
-		return null;
+		return new FCFSPolicy();		// Default for everything!
 	}
 }

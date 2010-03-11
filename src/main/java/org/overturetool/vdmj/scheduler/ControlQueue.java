@@ -34,6 +34,8 @@ public class ControlQueue
 
 	public void reset()
 	{
+		joined = null;
+		stimmed = false;
 		waiters.clear();
 	}
 

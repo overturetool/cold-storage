@@ -26,6 +26,8 @@ package org.overturetool.vdmj.scheduler;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.overturetool.vdmj.values.BUSValue;
+
 public class ResourceScheduler
 {
 	public String name = "scheduler";
@@ -63,6 +65,8 @@ public class ResourceScheduler
 
 	public void start(SchedulableThread main)
 	{
+		BUSValue.start();	// Start BUS threads first...
+
 		int idlePasses = 0;
 
 		while (idlePasses < 2 && main.getRunState() != RunState.COMPLETE)
@@ -106,7 +110,7 @@ public class ResourceScheduler
     		{
     			if (resource.hasActive())
     			{
-    				SchedulableThread.signalAll(Signal.BREAK);
+    				// SchedulableThread.signalAll(Signal.BREAK);
     				System.err.println("DEADLOCK detected");
     				break;
     			}

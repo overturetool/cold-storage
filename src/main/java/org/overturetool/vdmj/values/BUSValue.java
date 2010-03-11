@@ -27,7 +27,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 
+import org.overturetool.vdmj.scheduler.BusThread;
 import org.overturetool.vdmj.scheduler.CPUResource;
+import org.overturetool.vdmj.scheduler.FCFSPolicy;
 import org.overturetool.vdmj.scheduler.MessageRequest;
 import org.overturetool.vdmj.scheduler.MessageResponse;
 import org.overturetool.vdmj.scheduler.BUSResource;
@@ -57,11 +59,28 @@ public class BUSValue extends ObjectValue
 
 		for (Value v: set.values)
 		{
-			CPUValue cpuv = (CPUValue)v;
+			CPUValue cpuv = (CPUValue)v.deref();
 			cpulist.add(cpuv.resource);
 		}
 
-		resource = new BUSResource(policy, speed, cpulist);
+		resource = new BUSResource(false, policy, speed, cpulist);
+		busses.add(this);
+	}
+
+	public BUSValue(ClassType type, ValueSet cpus)
+	{
+		super(type, new NameValuePairMap(), new Vector<ObjectValue>(), null);
+		List<CPUResource> cpulist = new Vector<CPUResource>();
+
+		for (Value v: cpus)
+		{
+			CPUValue cpuv = (CPUValue)v.deref();
+			cpulist.add(cpuv.resource);
+		}
+
+		resource = new BUSResource(true, new FCFSPolicy(), 0, cpulist);
+		vBUS = this;
+		busses.add(this);
 	}
 
 	public static BUSValue findBus(CPUValue from, CPUValue to)
@@ -107,5 +126,23 @@ public class BUSValue extends ObjectValue
 	public static void init()
 	{
 		BUSResource.init();
+	}
+
+	public static void start()
+	{
+		for (BUSValue bus: busses)
+		{
+			new BusThread(bus.resource, 0).start();
+		}
+	}
+
+	public String getName()
+	{
+		return resource.getName();
+	}
+
+	public int getNumber()
+	{
+		return resource.getNumber();
 	}
 }

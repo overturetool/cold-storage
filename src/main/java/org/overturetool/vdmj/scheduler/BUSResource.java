@@ -30,7 +30,7 @@ import org.overturetool.vdmj.messages.RTLogger;
 
 public class BUSResource extends Resource
 {
-	private static int nextBUS = 0;
+	private static int nextBUS = 1;
 	private static BUSResource vBUS = null;
 
 	private final int busNumber;
@@ -39,18 +39,18 @@ public class BUSResource extends Resource
 	private final List<CPUResource> cpus;
 	private final List<MessagePacket> messages;
 
-	public BUSResource(
+	public BUSResource(boolean virtual,
 		SchedulingPolicy policy, double speed, List<CPUResource> cpus)
 	{
 		super(policy);
 
-		this.busNumber = nextBUS++;
+		this.busNumber = virtual ? 0 : nextBUS++;
 		this.cq = new ControlQueue();
 		this.speed = speed;
 		this.cpus = cpus;
 		this.messages = new LinkedList<MessagePacket>();
 
-		if (busNumber == 0)
+		if (virtual)
 		{
 			vBUS = this;
 		}
@@ -68,6 +68,7 @@ public class BUSResource extends Resource
 	{
 		messages.clear();
 		cq.reset();
+		policy.reset();
 	}
 
 	@Override
@@ -75,10 +76,13 @@ public class BUSResource extends Resource
 	{
 		super.setName(name);
 
-		RTLogger.log(
-			"BUSdecl -> id: " + busNumber +
-			" topo: " + cpusToSet() +
-			" name: \"" + name + "\"");
+		if (busNumber != 0)
+		{
+    		RTLogger.log(
+    			"BUSdecl -> id: " + busNumber +
+    			" topo: " + cpusToSet() +
+    			" name: \"" + name + "\"");
+		}
 	}
 
 	@Override
@@ -121,9 +125,9 @@ public class BUSResource extends Resource
 	public void transmit(MessageRequest request)
 	{
 		RTLogger.log(
-			"MessageRequest -> busid: " + request.bus.resource.busNumber +
-			" fromcpu: " + request.from.getCPU() +
-			" tocpu: " + request.to.getCPU() +
+			"MessageRequest -> busid: " + request.bus.getNumber() +
+			" fromcpu: " + request.from.getNumber() +
+			" tocpu: " + request.to.getNumber() +
 			" msgid: " + request.msgId +
 			" callthr: " + request.thread.getId() +
 			" opname: " + "\"" + request.operation.name + "\"" +
@@ -137,9 +141,9 @@ public class BUSResource extends Resource
 	public void reply(MessageResponse response)
 	{
 		RTLogger.log(
-			"ReplyRequest -> busid: " + response.bus.resource.busNumber +
-			" fromcpu: " + response.from.getCPU() +
-			" tocpu: " + response.to.getCPU() +
+			"ReplyRequest -> busid: " + response.bus.getNumber() +
+			" fromcpu: " + response.from.getNumber() +
+			" tocpu: " + response.to.getNumber() +
 			" msgid: " + response.msgId +
 			" origmsgid: " + response.originalId +
 			" callthr: " + response.caller.getId() +
@@ -204,7 +208,14 @@ public class BUSResource extends Resource
 
 	private long getDataDuration(long bytes)
 	{
-		return (long)(bytes/speed + 1);		// Same as VDMTools
+		if (speed == 0)
+		{
+			return 0;			// Infinitely fast virtual bus
+		}
+		else
+		{
+			return bytes;		// For now...
+		}
 	}
 
 	private String cpusToSet()
@@ -216,7 +227,7 @@ public class BUSResource extends Resource
 		for (CPUResource cpu: cpus)
 		{
 			sb.append(prefix);
-			sb.append(cpu.getCpuNumber());
+			sb.append(cpu.getNumber());
 			prefix=",";
 		}
 
@@ -228,5 +239,10 @@ public class BUSResource extends Resource
 	public String getStatus()
 	{
 		return name + " queue = " + messages.size();
+	}
+
+	public int getNumber()
+	{
+		return busNumber;
 	}
 }

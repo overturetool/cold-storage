@@ -34,6 +34,7 @@ import org.overturetool.vdmj.values.CPUValue;
 import org.overturetool.vdmj.values.ObjectValue;
 import org.overturetool.vdmj.values.OperationValue;
 import org.overturetool.vdmj.values.TransactionValue;
+import org.overturetool.vdmj.values.UndefinedValue;
 import org.overturetool.vdmj.values.Value;
 import org.overturetool.vdmj.values.ValueList;
 
@@ -50,7 +51,7 @@ public class MainThread extends SchedulableThread
 	public final boolean breakAtStart;
 	public final Expression expression;
 
-	private Value result = null;
+	private Value result = new UndefinedValue();
 	private RuntimeException exception = null;
 
 	public MainThread(LexLocation location, ObjectValue object, Context ctxt)

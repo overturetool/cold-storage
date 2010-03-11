@@ -24,7 +24,6 @@
 package org.overturetool.vdmj.definitions;
 
 import java.util.HashMap;
-
 import org.overturetool.vdmj.expressions.UndefinedExpression;
 import org.overturetool.vdmj.lex.LexNameList;
 import org.overturetool.vdmj.lex.LexNameToken;
@@ -33,6 +32,8 @@ import org.overturetool.vdmj.runtime.ContextException;
 import org.overturetool.vdmj.runtime.ValueException;
 import org.overturetool.vdmj.scheduler.ResourceScheduler;
 import org.overturetool.vdmj.typechecker.Environment;
+import org.overturetool.vdmj.types.ClassType;
+import org.overturetool.vdmj.types.Type;
 import org.overturetool.vdmj.types.UnresolvedType;
 import org.overturetool.vdmj.values.BUSValue;
 import org.overturetool.vdmj.values.CPUValue;
@@ -41,6 +42,7 @@ import org.overturetool.vdmj.values.QuoteValue;
 import org.overturetool.vdmj.values.RealValue;
 import org.overturetool.vdmj.values.UpdatableValue;
 import org.overturetool.vdmj.values.ValueList;
+import org.overturetool.vdmj.values.ValueSet;
 
 public class SystemDefinition extends ClassDefinition
 {
@@ -115,63 +117,73 @@ public class SystemDefinition extends ClassDefinition
 
 			// Do CPUs first so that default BUSses can connect all CPUs.
 
+			ValueSet cpus = new ValueSet();
+
 			for (Definition d: definitions)
 			{
-				if (d instanceof CPUClassDefinition)
+				Type t = d.getType();
+
+				if (t instanceof ClassType)
 				{
-					CPUClassDefinition cd = (CPUClassDefinition)d;
-					UpdatableValue v = (UpdatableValue)system.members.get(d.name);
-					CPUValue cpu = null;
+					ClassType ct = (ClassType)t;
 
-					if (v.isUndefined())
+					if (ct.classdef instanceof CPUClassDefinition)
 					{
-						ValueList args = new ValueList();
+						UpdatableValue v = (UpdatableValue)system.members.get(d.name);
+						CPUValue cpu = null;
 
-						args.add(new QuoteValue("FCFS"));	// Default policy
-						args.add(new RealValue(0));			// Default speed
+						if (v.isUndefined())
+						{
+							ValueList args = new ValueList();
 
-						cpu = (CPUValue)cd.newInstance(null, args, ctxt);
-						v.set(location, cpu, ctxt);
+							args.add(new QuoteValue("FCFS"));	// Default policy
+							args.add(new RealValue(0));			// Default speed
+
+							cpu = (CPUValue)ct.classdef.newInstance(null, args, ctxt);
+							v.set(location, cpu, ctxt);
+						}
+						else
+						{
+							cpu = (CPUValue)v.deref();
+						}
+
+						// Set the name and scheduler for the CPU resource, and
+						// associate the resource with the scheduler.
+
+						cpu.setup(scheduler, d.name.name);
+						cpus.add(cpu);
 					}
-					else
-					{
-						cpu = (CPUValue)v.deref();
-					}
-
-					// Set the name and scheduler for the CPU resource, and
-					// associate the resource with the scheduler.
-
-					cpu.setup(scheduler, d.name.name);
 				}
 			}
 
+			// We can create vBUS now that all the CPUs have been created
+
+			BUSValue.vBUS = BUSClassDefinition.makeVirtualBUS(cpus);
+			BUSValue.vBUS.setup(scheduler, "vBUS");
+
 			for (Definition d: definitions)
 			{
-				if (d instanceof BUSClassDefinition)
+				Type t = d.getType();
+
+				if (t instanceof ClassType)
 				{
-					BUSClassDefinition bd = (BUSClassDefinition)d;
-					UpdatableValue v = (UpdatableValue)system.members.get(d.name);
-    				BUSValue bus = null;
+					ClassType ct = (ClassType)t;
 
-					if (!v.isUndefined())
+					if (ct.classdef instanceof BUSClassDefinition)
 					{
-						ValueList args = new ValueList();
+						UpdatableValue v = (UpdatableValue)system.members.get(d.name);
+	    				BUSValue bus = null;
 
-						args.add(new QuoteValue("FCFS"));	// Default policy
-						args.add(new RealValue(0));			// Default speed
+						if (!v.isUndefined())
+						{
+							bus = (BUSValue)v.deref();
 
-						bus = (BUSValue)bd.newInstance(null, args, ctxt);
-						v.set(location, bus, ctxt);
+							// Set the name and scheduler for the BUS resource, and
+							// associate the resource with the scheduler.
+
+							bus.setup(scheduler, d.name.name);
+						}
 					}
-					else
-					{
-						bus = (BUSValue)v.deref();
-					}
-
-					// Set the name and scheduler for the BUS resource, and
-					// associate the resource with the scheduler.
-
-					bus.setup(scheduler, d.name.name);
 				}
 			}
 		}

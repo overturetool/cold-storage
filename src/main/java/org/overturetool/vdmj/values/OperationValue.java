@@ -479,7 +479,7 @@ public class OperationValue extends Value
 			" opname: \"" + name + "\"" +
 			" objref: " + self.objectReference +
 			" clnm: \"" + self.type.name.name + "\"" +
-			" cpunm: " + from.resource.getCpuNumber() +
+			" cpunm: " + from.getNumber() +
 			" async: " + isAsync
 			);
 
@@ -490,7 +490,7 @@ public class OperationValue extends Value
     		if (bus == null)
     		{
     			abort(4140,
-    				"No BUS between CPUs " + from.resource.name + " and " + to.resource.name, ctxt);
+    				"No BUS between CPUs " + from.getName() + " and " + to.getName(), ctxt);
     		}
 
     		if (isAsync)	// Don't wait
@@ -633,7 +633,7 @@ public class OperationValue extends Value
         			" opname: \"" + name + "\"" +
         			" objref: " + self.objectReference +
         			" clnm: \"" + self.type.name.name + "\"" +
-        			" cpunm: " + self.getCPU().resource.getCpuNumber() +
+        			" cpunm: " + self.getCPU().getNumber() +
         			" async: " + isAsync
         			);
 			}

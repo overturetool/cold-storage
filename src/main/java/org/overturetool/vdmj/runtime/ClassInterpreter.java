@@ -151,6 +151,7 @@ public class ClassInterpreter extends Interpreter
 	@Override
 	public void init(DBGPReader dbgp)
 	{
+		scheduler.init();
 		initialContext = classes.initialize(scheduler, dbgp);
 		createdValues = new NameValuePairMap();
 		createdDefinitions = new DefinitionSet();

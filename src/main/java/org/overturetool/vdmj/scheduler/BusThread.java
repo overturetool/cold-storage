@@ -28,6 +28,7 @@ public class BusThread extends SchedulableThread
 	public BusThread(Resource resource, long priority)
 	{
 		super(resource, null, priority, false, 0);
+		setName("BusThread-" + getId());
 	}
 
 	@Override

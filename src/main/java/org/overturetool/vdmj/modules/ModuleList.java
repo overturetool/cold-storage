@@ -134,7 +134,6 @@ public class ModuleList extends Vector<Module>
 				new StateContext(this.get(0).name.location, "global environment");
 		}
 
-		scheduler.init();
 		SystemClock.init();
 		CPUValue.init(scheduler);
 		BUSValue.init();

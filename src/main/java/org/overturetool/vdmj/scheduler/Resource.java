@@ -26,7 +26,7 @@ package org.overturetool.vdmj.scheduler;
 abstract public class Resource
 {
 	public final SchedulingPolicy policy;
-	public String name = "unknown";
+	protected String name = "unknown";
 	protected ResourceScheduler scheduler;
 
 	public Resource(SchedulingPolicy policy)
@@ -42,6 +42,11 @@ abstract public class Resource
 	public void setName(String name)
 	{
 		this.name = name;
+	}
+
+	public String getName()
+	{
+		return name;
 	}
 
 	@Override

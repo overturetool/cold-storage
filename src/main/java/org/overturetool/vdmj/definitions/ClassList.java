@@ -37,6 +37,7 @@ import org.overturetool.vdmj.expressions.Expression;
 import org.overturetool.vdmj.lex.Dialect;
 import org.overturetool.vdmj.lex.LexLocation;
 import org.overturetool.vdmj.lex.LexNameToken;
+import org.overturetool.vdmj.messages.RTLogger;
 import org.overturetool.vdmj.pog.POContextStack;
 import org.overturetool.vdmj.pog.ProofObligationList;
 import org.overturetool.vdmj.runtime.ContextException;
@@ -177,16 +178,29 @@ public class ClassList extends Vector<ClassDefinition>
     			if (cdef instanceof SystemDefinition)
     			{
     				systemClass = (SystemDefinition)cdef;
+
+    				// Show the initial thread creation, an vCPU decl.
+
+    				RTLogger.log(
+    					"ThreadCreate -> id: " + Thread.currentThread().getId() +
+    					" period: false " +
+    					" objref: nil clnm: nil " +
+    					" cpunm: 0");
+
+    				RTLogger.log(
+    					"ThreadSwapIn -> id: " + Thread.currentThread().getId() +
+    					" objref: nil clnm: nil " +
+    					" cpunm: 0" +
+    					" overhead: 0");
     			}
 			}
 		}
 
-		scheduler.init();
 		SystemClock.init();
 		CPUValue.init(scheduler);
 		BUSValue.init();
 
-		globalContext.setThreadState(dbgp, null);
+		globalContext.setThreadState(dbgp, CPUValue.vCPU);
 
 		// Initialize all the functions/operations first because the values
 		// "statics" can call them.

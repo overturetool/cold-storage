@@ -38,10 +38,12 @@ import org.overturetool.vdmj.values.NameValuePairList;
 import org.overturetool.vdmj.values.NameValuePairMap;
 import org.overturetool.vdmj.values.ObjectValue;
 import org.overturetool.vdmj.values.ValueList;
+import org.overturetool.vdmj.values.ValueSet;
 
 public class BUSClassDefinition extends ClassDefinition
 {
 	private static final long serialVersionUID = 1L;
+	private static BUSClassDefinition instance = null;
 
 	public BUSClassDefinition() throws ParserException, LexException
 	{
@@ -49,6 +51,8 @@ public class BUSClassDefinition extends ClassDefinition
 			new LexNameToken("CLASS", "BUS", new LexLocation()),
 			new LexNameList(),
 			operationDefs());
+
+		instance = this;
 	}
 
 	private static String defs =
@@ -74,5 +78,10 @@ public class BUSClassDefinition extends ClassDefinition
 		map.putAll(nvpl);
 
 		return new BUSValue((ClassType)classtype, map, argvals);
+	}
+
+	public static BUSValue makeVirtualBUS(ValueSet cpus)
+	{
+		return new BUSValue((ClassType)instance.getType(), cpus);
 	}
 }
