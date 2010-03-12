@@ -53,6 +53,7 @@ import org.overturetool.vdmj.scheduler.ControlQueue;
 import org.overturetool.vdmj.scheduler.Holder;
 import org.overturetool.vdmj.scheduler.MessageRequest;
 import org.overturetool.vdmj.scheduler.MessageResponse;
+import org.overturetool.vdmj.scheduler.ResourceScheduler;
 import org.overturetool.vdmj.statements.Statement;
 import org.overturetool.vdmj.types.OperationType;
 import org.overturetool.vdmj.types.PatternListTypePair;
@@ -600,15 +601,23 @@ public class OperationValue extends Value
 	private synchronized void act()
 	{
 		hashAct++;
-		trace("OpActivate");
-		debug("act");
+		
+		if (!ResourceScheduler.isStopping())
+		{
+			trace("OpActivate");
+			debug("act");
+		}
 	}
 
 	private synchronized void fin()
 	{
 		hashFin++;
-		trace("OpCompleted");
-		debug("fin");
+
+		if (!ResourceScheduler.isStopping())
+		{
+			trace("OpCompleted");
+			debug("fin");
+		}
 	}
 
 	private void trace(String kind)

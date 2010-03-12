@@ -34,6 +34,7 @@ public class ResourceScheduler
 	public String name = "scheduler";
 	private List<Resource> resources = new LinkedList<Resource>();
 	private MainThread mainThread = null;
+	private static boolean stopping = false;
 
 	public void init()
 	{
@@ -72,6 +73,7 @@ public class ResourceScheduler
 		BUSValue.start();	// Start BUS threads first...
 
 		boolean idle = true;
+		stopping = false;
 
 		do
 		{
@@ -109,6 +111,7 @@ public class ResourceScheduler
 		}
 		while (!idle && main.getRunState() != RunState.COMPLETE);
 
+		stopping = true;
 
 		if (main.getRunState() != RunState.COMPLETE)
 		{
@@ -141,5 +144,10 @@ public class ResourceScheduler
 	public void raise(RuntimeException exception)
 	{
 		mainThread.setException(exception);
+	}
+	
+	public static boolean isStopping()
+	{
+		return stopping;
 	}
 }
