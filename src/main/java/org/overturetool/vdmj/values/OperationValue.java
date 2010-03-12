@@ -485,7 +485,7 @@ public class OperationValue extends Value
 
 		if (from != to)		// Remote CPU call
 		{
-    		BUSValue bus = BUSValue.findBus(from, to);
+    		BUSValue bus = BUSValue.lookupBUS(from, to);
 
     		if (bus == null)
     		{

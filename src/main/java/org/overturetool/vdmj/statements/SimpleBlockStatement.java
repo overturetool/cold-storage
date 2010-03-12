@@ -26,15 +26,11 @@ package org.overturetool.vdmj.statements;
 import java.util.List;
 import java.util.Vector;
 
-import org.overturetool.vdmj.Settings;
-import org.overturetool.vdmj.config.Properties;
 import org.overturetool.vdmj.expressions.Expression;
-import org.overturetool.vdmj.lex.Dialect;
 import org.overturetool.vdmj.lex.LexLocation;
 import org.overturetool.vdmj.pog.POContextStack;
 import org.overturetool.vdmj.pog.ProofObligationList;
 import org.overturetool.vdmj.runtime.Context;
-import org.overturetool.vdmj.scheduler.SchedulableThread;
 import org.overturetool.vdmj.typechecker.Environment;
 import org.overturetool.vdmj.typechecker.NameScope;
 import org.overturetool.vdmj.types.Type;
@@ -197,38 +193,14 @@ abstract public class SimpleBlockStatement extends Statement
 	{
 		// Note, no breakpoint check - designed to be called by eval
 
-		Thread current = Thread.currentThread();
-
-		if (Settings.dialect == Dialect.VDM_RT &&
-			ctxt.threadState.getTimestep() < 0 &&
-			current instanceof SchedulableThread)
+		for (Statement s: statements)
 		{
-			int time = Properties.rt_duration_default;
-			SchedulableThread me = (SchedulableThread)current;
+			Value rv = s.eval(ctxt);
 
-			for (Statement s: statements)
+			if (!rv.isVoid())
 			{
-				Value rv = s.eval(ctxt);
-
-				me.duration(time);
-
-				if (!rv.isVoid())
-    			{
-    				return rv;
-    			}
+				return rv;
 			}
-		}
-		else
-		{
-    		for (Statement s: statements)
-    		{
-    			Value rv = s.eval(ctxt);
-
-    			if (!rv.isVoid())
-    			{
-    				return rv;
-    			}
-    		}
 		}
 
 		return new VoidValue();

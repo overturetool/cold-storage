@@ -48,6 +48,8 @@ public class MainThread extends SchedulableThread
 
 		this.expression = expr;
 		this.ctxt = ctxt;
+
+		setName("MainThread-" + getId());
 	}
 
 	@Override

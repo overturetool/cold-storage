@@ -36,6 +36,7 @@ import org.overturetool.vdmj.runtime.ValueException;
 import org.overturetool.vdmj.values.CPUValue;
 import org.overturetool.vdmj.values.ObjectValue;
 import org.overturetool.vdmj.values.OperationValue;
+import org.overturetool.vdmj.values.TransactionValue;
 import org.overturetool.vdmj.values.Value;
 import org.overturetool.vdmj.values.ValueList;
 
@@ -147,6 +148,10 @@ public class AsyncThread extends SchedulableThread
 				reader.complete(DBGPReason.EXCEPTION, null);
 			}
 		}
+		finally
+		{
+			TransactionValue.commitAll();
+		}
 	}
 
 	private void runCmd()
@@ -178,6 +183,10 @@ public class AsyncThread extends SchedulableThread
 			{
 				request.bus.reply(new MessageResponse(e, request));
 			}
+		}
+		finally
+		{
+			TransactionValue.commitAll();
 		}
 	}
 }

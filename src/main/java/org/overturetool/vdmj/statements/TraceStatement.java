@@ -88,7 +88,8 @@ public class TraceStatement extends Statement
     			}
     			else
     			{
-        			interpreter.init(null);	// Initialize completely between every run...
+    				// Initialize completely between every run...
+        			interpreter.init(null);
         			List<Object> result = interpreter.runtrace(tracedef.classDefinition, test);
         			tests.filter(result, test, n);
 

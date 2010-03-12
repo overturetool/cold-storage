@@ -280,7 +280,7 @@ public class VDMPP extends VDMJ
 		{
     		try
     		{
-    			PrintWriter p = new PrintWriter(new FileOutputStream(logfile, true));
+    			PrintWriter p = new PrintWriter(new FileOutputStream(logfile, false));
     			RTLogger.setLogfile(p);
     			println("RT events now logged to " + logfile);
     		}

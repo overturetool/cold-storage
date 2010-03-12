@@ -24,9 +24,11 @@
 package org.overturetool.vdmj.definitions;
 
 import java.util.HashMap;
+
 import org.overturetool.vdmj.expressions.UndefinedExpression;
 import org.overturetool.vdmj.lex.LexNameList;
 import org.overturetool.vdmj.lex.LexNameToken;
+import org.overturetool.vdmj.messages.RTLogger;
 import org.overturetool.vdmj.runtime.Context;
 import org.overturetool.vdmj.runtime.ContextException;
 import org.overturetool.vdmj.runtime.ValueException;
@@ -34,6 +36,7 @@ import org.overturetool.vdmj.scheduler.ResourceScheduler;
 import org.overturetool.vdmj.typechecker.Environment;
 import org.overturetool.vdmj.types.ClassType;
 import org.overturetool.vdmj.types.Type;
+import org.overturetool.vdmj.types.UndefinedType;
 import org.overturetool.vdmj.types.UnresolvedType;
 import org.overturetool.vdmj.values.BUSValue;
 import org.overturetool.vdmj.values.CPUValue;
@@ -110,6 +113,37 @@ public class SystemDefinition extends ClassDefinition
 	{
 		try
 		{
+			// First go through the definitions, looking for CPUs to decl
+			// before we can deploy to them in the constructor. We have to
+			// predict the CPU numbers at this point.
+
+			DefinitionList cpudefs = new DefinitionList();
+			int cpuNumber = 1;
+			CPUClassDefinition instance = null;
+
+			for (Definition d: definitions)
+			{
+				Type t = d.getType();
+
+				if (t instanceof ClassType)
+				{
+					InstanceVariableDefinition ivd = (InstanceVariableDefinition)d;
+					ClassType ct = (ClassType)t;
+
+					if (ct.classdef instanceof CPUClassDefinition)
+					{
+						cpudefs.add(d);
+						instance = (CPUClassDefinition)ct.classdef;
+
+	    				RTLogger.log(
+	    					"CPUdecl -> id: " + (cpuNumber++) +
+	    					" expl: " + !(ivd.expType instanceof UndefinedType) +
+	    					" sys: \"" + name.name + "\"" +
+	    					" name: \"" + d.name.name + "\"");
+					}
+				}
+			}
+
 			// Run the constructor to do any deploys etc.
 
 			ObjectValue system = makeNewInstance(null, new ValueList(),
@@ -119,44 +153,35 @@ public class SystemDefinition extends ClassDefinition
 
 			ValueSet cpus = new ValueSet();
 
-			for (Definition d: definitions)
+			for (Definition d: cpudefs)
 			{
-				Type t = d.getType();
+    			UpdatableValue v = (UpdatableValue)system.members.get(d.name);
+    			CPUValue cpu = null;
 
-				if (t instanceof ClassType)
-				{
-					ClassType ct = (ClassType)t;
+    			if (v.isUndefined())
+    			{
+    				ValueList args = new ValueList();
 
-					if (ct.classdef instanceof CPUClassDefinition)
-					{
-						UpdatableValue v = (UpdatableValue)system.members.get(d.name);
-						CPUValue cpu = null;
+    				args.add(new QuoteValue("FCFS"));	// Default policy
+    				args.add(new RealValue(0));			// Default speed
 
-						if (v.isUndefined())
-						{
-							ValueList args = new ValueList();
+    				cpu = (CPUValue)instance.newInstance(null, args, ctxt);
+    				v.set(location, cpu, ctxt);
+    			}
+    			else
+    			{
+    				cpu = (CPUValue)v.deref();
+    			}
 
-							args.add(new QuoteValue("FCFS"));	// Default policy
-							args.add(new RealValue(0));			// Default speed
+    			// Set the name and scheduler for the CPU resource, and
+    			// associate the resource with the scheduler.
 
-							cpu = (CPUValue)ct.classdef.newInstance(null, args, ctxt);
-							v.set(location, cpu, ctxt);
-						}
-						else
-						{
-							cpu = (CPUValue)v.deref();
-						}
-
-						// Set the name and scheduler for the CPU resource, and
-						// associate the resource with the scheduler.
-
-						cpu.setup(scheduler, d.name.name);
-						cpus.add(cpu);
-					}
-				}
+    			cpu.setup(scheduler, d.name.name);
+    			cpus.add(cpu);
 			}
 
 			// We can create vBUS now that all the CPUs have been created
+			// This must be first, to ensure it's bus number 0.
 
 			BUSValue.vBUS = BUSClassDefinition.makeVirtualBUS(cpus);
 			BUSValue.vBUS.setup(scheduler, "vBUS");
@@ -186,6 +211,8 @@ public class SystemDefinition extends ClassDefinition
 					}
 				}
 			}
+
+			BUSValue.createMap(ctxt, cpus);
 		}
 		catch (ContextException e)
 		{

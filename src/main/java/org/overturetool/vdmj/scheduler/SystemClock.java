@@ -23,6 +23,8 @@
 
 package org.overturetool.vdmj.scheduler;
 
+import org.overturetool.vdmj.values.TransactionValue;
+
 public class SystemClock
 {
 	private static long wallTime = 0;
@@ -40,5 +42,6 @@ public class SystemClock
 	public static synchronized void advance(long duration)
 	{
 		wallTime += duration;
+		TransactionValue.commitAll();
 	}
 }

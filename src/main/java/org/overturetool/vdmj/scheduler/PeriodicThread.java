@@ -37,6 +37,7 @@ import org.overturetool.vdmj.runtime.RootContext;
 import org.overturetool.vdmj.runtime.ValueException;
 import org.overturetool.vdmj.values.ObjectValue;
 import org.overturetool.vdmj.values.OperationValue;
+import org.overturetool.vdmj.values.TransactionValue;
 import org.overturetool.vdmj.values.ValueList;
 
 public class PeriodicThread extends SchedulableThread
@@ -145,6 +146,10 @@ public class PeriodicThread extends SchedulableThread
 				reader.complete(DBGPReason.EXCEPTION, null);
 			}
 		}
+		finally
+		{
+			TransactionValue.commitAll();
+		}
 	}
 
 	private void runCmd()
@@ -162,6 +167,10 @@ public class PeriodicThread extends SchedulableThread
 		catch (ValueException e)
 		{
 			throw new ContextException(e, operation.name.location);
+		}
+		finally
+		{
+			TransactionValue.commitAll();
 		}
 	}
 

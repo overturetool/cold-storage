@@ -50,21 +50,6 @@ public class CPUResource extends Resource
 		}
 	}
 
-	@Override
-	public void setName(String name)
-	{
-		super.setName(name);
-
-		if (cpuNumber != 0)
-		{
-    		RTLogger.log(
-    			"CPUdecl -> id: " + cpuNumber +
-    			" expl: " + true +
-    			" sys: \"" + scheduler.name + "\"" +
-    			" name: \"" + name + "\"");
-		}
-	}
-
 	public static void init()
 	{
 		nextCPU = 0;

@@ -86,6 +86,13 @@ public class ClassInterpreter extends Interpreter
 		{
 			setDefaultName(classes.get(0).name.name);
 		}
+
+		systemInit();	// Create one-off system resources
+	}
+
+	private void systemInit()
+	{
+		// ?
 	}
 
 	@Override

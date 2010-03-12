@@ -26,6 +26,8 @@ package org.overturetool.vdmj.scheduler;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.overturetool.vdmj.config.Properties;
+
 public class FCFSPolicy extends SchedulingPolicy
 {
 	protected final List<SchedulableThread> threads;
@@ -107,7 +109,7 @@ public class FCFSPolicy extends SchedulingPolicy
 	@Override
 	public long getTimeslice()
 	{
-		return DEFAULT_TIMESLICE;
+		return Properties.scheduler_fcfs_timeslice;
 	}
 
 	@Override

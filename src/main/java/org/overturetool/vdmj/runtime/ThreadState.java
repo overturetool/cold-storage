@@ -85,7 +85,7 @@ public class ThreadState
 		return timestep;
 	}
 
-	public void reschedule()	// Called for VDM_RT at every statement/expression
+	public void reschedule()	// Called for RT & PP at every statement/expression
 	{
 		if (!atomic)
 		{

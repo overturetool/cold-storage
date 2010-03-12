@@ -26,6 +26,8 @@ package org.overturetool.vdmj.scheduler;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.overturetool.vdmj.config.Properties;
+
 public class FPPolicy extends FCFSPolicy
 {
 	private final Map<SchedulableThread, Long> priorities;
@@ -46,7 +48,8 @@ public class FPPolicy extends FCFSPolicy
 	public synchronized void register(SchedulableThread thread, long priority)
 	{
 		super.register(thread, priority);
-		priorities.put(thread, priority == 0 ? DEFAULT_TIMESLICE : priority);
+		priorities.put(thread, priority == 0 ?
+			Properties.scheduler_fcfs_timeslice : priority);
 	}
 
 	@Override

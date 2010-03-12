@@ -36,6 +36,9 @@ public class Properties extends ConfigBase
 	/** The default duration for RT statements executed in a block. */
 	public static int rt_duration_default = 2;
 
+	/** The default timeslice (statements) for a FCFS policy */
+	public static int scheduler_fcfs_timeslice = 10;
+
 	/**
 	 * When the class is initialized, we call the ConfigBase init method, which
 	 * uses the properties file passed to update the static fields above.

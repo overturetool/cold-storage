@@ -26,6 +26,9 @@ package org.overturetool.vdmj.scheduler;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.overturetool.vdmj.Settings;
+import org.overturetool.vdmj.config.Properties;
+import org.overturetool.vdmj.lex.Dialect;
 import org.overturetool.vdmj.values.ObjectValue;
 
 public abstract class SchedulableThread extends Thread
@@ -127,6 +130,11 @@ public abstract class SchedulableThread extends Thread
 
 	public void step()
 	{
+		if (Settings.dialect == Dialect.VDM_RT)
+		{
+			duration(Properties.rt_duration_default);
+		}
+
 		if (++steps >= timeslice)
 		{
 			reschedule();

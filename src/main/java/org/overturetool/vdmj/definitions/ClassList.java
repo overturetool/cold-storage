@@ -178,20 +178,7 @@ public class ClassList extends Vector<ClassDefinition>
     			if (cdef instanceof SystemDefinition)
     			{
     				systemClass = (SystemDefinition)cdef;
-
-    				// Show the initial thread creation, an vCPU decl.
-
-    				RTLogger.log(
-    					"ThreadCreate -> id: " + Thread.currentThread().getId() +
-    					" period: false " +
-    					" objref: nil clnm: nil " +
-    					" cpunm: 0");
-
-    				RTLogger.log(
-    					"ThreadSwapIn -> id: " + Thread.currentThread().getId() +
-    					" objref: nil clnm: nil " +
-    					" cpunm: 0" +
-    					" overhead: 0");
+    				logSwapIn();
     			}
 			}
 		}
@@ -258,6 +245,7 @@ public class ClassList extends Vector<ClassDefinition>
 		{
 			systemClass.init(scheduler, globalContext);
 			TransactionValue.commitAll();
+			logSwapOut();
 		}
 
 		return globalContext;
@@ -368,5 +356,35 @@ public class ClassList extends Vector<ClassDefinition>
 
 		obligations.trivialCheck();
 		return obligations;
+	}
+
+	private void logSwapIn()
+	{
+		// Show the "system constructor" thread creation
+
+		RTLogger.log(
+			"ThreadCreate -> id: " + Thread.currentThread().getId() +
+			" period: false " +
+			" objref: nil clnm: nil " +
+			" cpunm: 0");
+
+		RTLogger.log(
+			"ThreadSwapIn -> id: " + Thread.currentThread().getId() +
+			" objref: nil clnm: nil " +
+			" cpunm: 0" +
+			" overhead: 0");
+	}
+
+	private void logSwapOut()
+	{
+		RTLogger.log(
+			"ThreadSwapOut -> id: " + Thread.currentThread().getId() +
+			" objref: nil clnm: nil " +
+			" cpunm: 0" +
+			" overhead: 0");
+
+		RTLogger.log(
+			"ThreadKill -> id: " + Thread.currentThread().getId() +
+			" cpunm: 0");
 	}
 }

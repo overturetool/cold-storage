@@ -39,18 +39,18 @@ public class BUSResource extends Resource
 	private final List<CPUResource> cpus;
 	private final List<MessagePacket> messages;
 
-	public BUSResource(boolean virtual,
+	public BUSResource(boolean isVirtual,
 		SchedulingPolicy policy, double speed, List<CPUResource> cpus)
 	{
 		super(policy);
 
-		this.busNumber = virtual ? 0 : nextBUS++;
+		this.busNumber = isVirtual ? 0 : nextBUS++;
 		this.cq = new ControlQueue();
 		this.speed = speed;
 		this.cpus = cpus;
 		this.messages = new LinkedList<MessagePacket>();
 
-		if (virtual)
+		if (isVirtual)
 		{
 			vBUS = this;
 		}
@@ -59,7 +59,7 @@ public class BUSResource extends Resource
 	public static void init()
 	{
 		MessagePacket.init();
-		nextBUS = 0;
+		nextBUS = 1;
 		vBUS = null;
 	}
 

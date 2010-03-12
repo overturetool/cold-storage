@@ -67,18 +67,18 @@ public class ResourceScheduler
 	{
 		BUSValue.start();	// Start BUS threads first...
 
-		int idlePasses = 0;
+		boolean idle = true;
 
-		while (idlePasses < 2 && main.getRunState() != RunState.COMPLETE)
+		do
 		{
-			idlePasses++;
 			long minstep = Long.MAX_VALUE;
+			idle = true;
 
 			for (Resource resource: resources)
 			{
 				if (resource.reschedule())
 				{
-					idlePasses = 0;
+					idle = false;
 				}
 				else
 				{
@@ -91,7 +91,7 @@ public class ResourceScheduler
 				}
 			}
 
-			if (idlePasses > 0 && minstep >= 0 && minstep < Long.MAX_VALUE)
+			if (idle && minstep >= 0 && minstep < Long.MAX_VALUE)
 			{
 				SystemClock.advance(minstep);
 
@@ -100,9 +100,11 @@ public class ResourceScheduler
 					resource.advance();
 				}
 
-				idlePasses = 0;
+				idle = false;
 			}
 		}
+		while (!idle && main.getRunState() != RunState.COMPLETE);
+
 
 		if (main.getRunState() != RunState.COMPLETE)
 		{

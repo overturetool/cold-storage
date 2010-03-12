@@ -409,7 +409,7 @@ public class DBGPReader
 					if (logfile != null)
 					{
 		    			PrintWriter p = new PrintWriter(
-		    				new FileOutputStream(logfile, true));
+		    				new FileOutputStream(logfile, false));
 		    			RTLogger.setLogfile(p);
 					}
 

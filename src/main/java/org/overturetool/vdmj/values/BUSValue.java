@@ -27,6 +27,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 
+import org.overturetool.vdmj.runtime.Context;
+import org.overturetool.vdmj.runtime.ContextException;
 import org.overturetool.vdmj.scheduler.BusThread;
 import org.overturetool.vdmj.scheduler.CPUResource;
 import org.overturetool.vdmj.scheduler.FCFSPolicy;
@@ -41,6 +43,8 @@ public class BUSValue extends ObjectValue
 {
 	private static final long serialVersionUID = 1L;
 	private static List<BUSValue> busses = new LinkedList<BUSValue>();
+	private static BUSValue[][] cpumap = null;
+
 	public static BUSValue vBUS = null;
 	public final BUSResource resource;
 
@@ -83,19 +87,6 @@ public class BUSValue extends ObjectValue
 		busses.add(this);
 	}
 
-	public static BUSValue findBus(CPUValue from, CPUValue to)
-	{
-		for (BUSValue bus : busses)
-		{
-			if (bus.resource.links(from.resource, to.resource))
-			{
-				return bus;
-			}
-		}
-
-		return vBUS;
-	}
-
 	public void setup(ResourceScheduler scheduler, String name)
 	{
 		resource.setName(name);
@@ -126,6 +117,7 @@ public class BUSValue extends ObjectValue
 	public static void init()
 	{
 		BUSResource.init();
+		// Can't create the vBUS until we know all the CPUs.
 	}
 
 	public static void start()
@@ -144,5 +136,74 @@ public class BUSValue extends ObjectValue
 	public int getNumber()
 	{
 		return resource.getNumber();
+	}
+
+	public static void createMap(Context ctxt, ValueSet allCPUs)
+	{
+		int max = allCPUs.size() + 1;		// vCPU missing
+		cpumap = new BUSValue[max][max];
+
+		for (int i=0; i<max; i++)
+		{
+			cpumap[i][0] = vBUS;
+			cpumap[0][i] = vBUS;
+		}
+
+		for (Value fv: allCPUs)
+		{
+			CPUValue from = (CPUValue)fv;
+
+			for (Value tv: allCPUs)
+			{
+				CPUValue to = (CPUValue)tv;
+
+				if (from == to)
+				{
+					continue;
+				}
+
+				BUSValue bus = findRealBUS(from, to);
+
+				if (bus == null)
+				{
+					continue;	// May be OK - separated island CPUs
+				}
+
+				int nf = from.getNumber();
+				int nt = to.getNumber();
+
+				if (cpumap[nf][nt] == null)
+				{
+					cpumap[nf][nt] = bus;
+				}
+				else if (cpumap[nf][nt] != bus)
+				{
+					throw new ContextException(4139,
+						"CPUs " + from.getName() + " and " + to.getName() +
+						" connected by " +
+						bus.getName() + " and " + cpumap[nf][nt].getName(),
+						ctxt.location, ctxt);
+				}
+			}
+		}
+	}
+
+	private static BUSValue findRealBUS(CPUValue from, CPUValue to)
+	{
+		for (BUSValue bus : busses)
+		{
+			if (bus != vBUS &&
+				bus.resource.links(from.resource, to.resource))
+			{
+				return bus;
+			}
+		}
+
+		return null;
+	}
+
+	public static BUSValue lookupBUS(CPUValue from, CPUValue to)
+	{
+		return cpumap[from.getNumber()][to.getNumber()];
 	}
 }

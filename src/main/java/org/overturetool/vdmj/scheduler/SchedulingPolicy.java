@@ -27,8 +27,6 @@ import org.overturetool.vdmj.scheduler.SchedulingPolicy;
 
 abstract public class SchedulingPolicy
 {
-	protected static final long DEFAULT_TIMESLICE = 100;
-
 	abstract public boolean reschedule();
 	abstract public SchedulableThread getThread();
 	abstract public long getTimeslice();

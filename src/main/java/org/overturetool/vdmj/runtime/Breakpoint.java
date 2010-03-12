@@ -172,7 +172,7 @@ public class Breakpoint implements Serializable
 		ThreadState state = ctxt.threadState;
 		handleInterrupt(execl, ctxt);
 
-		if (Settings.dialect == Dialect.VDM_RT)
+		if (Settings.dialect != Dialect.VDM_SL)
 		{
 			state.reschedule();
 		}
