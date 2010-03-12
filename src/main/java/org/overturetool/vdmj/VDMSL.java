@@ -270,7 +270,7 @@ public class VDMSL extends VDMJ
 		{
    			long before = System.currentTimeMillis();
    			interpreter = getInterpreter();
-   			interpreter.init(null);
+   			interpreter.systemInit(null);
 
    			if (defaultName != null)
    			{

@@ -26,16 +26,19 @@ package org.overturetool.vdmj.scheduler;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.overturetool.vdmj.runtime.MainThread;
 import org.overturetool.vdmj.values.BUSValue;
 
 public class ResourceScheduler
 {
 	public String name = "scheduler";
 	private List<Resource> resources = new LinkedList<Resource>();
+	private MainThread mainThread = null;
 
 	public void init()
 	{
 		resources.clear();
+		mainThread = null;
 	}
 
 	public void reset()
@@ -63,8 +66,9 @@ public class ResourceScheduler
 		resource.setScheduler(null);
 	}
 
-	public void start(SchedulableThread main)
+	public void start(MainThread main)
 	{
+		mainThread = main;
 		BUSValue.start();	// Start BUS threads first...
 
 		boolean idle = true;
@@ -112,8 +116,7 @@ public class ResourceScheduler
     		{
     			if (resource.hasActive())
     			{
-    				// SchedulableThread.signalAll(Signal.BREAK);
-    				System.err.println("DEADLOCK detected");
+    				raise(new RuntimeException("DEADLOCK detected"));
     				break;
     			}
     		}
@@ -133,5 +136,10 @@ public class ResourceScheduler
 		}
 
 		return sb.toString();
+	}
+
+	public void raise(RuntimeException exception)
+	{
+		mainThread.setException(exception);
 	}
 }

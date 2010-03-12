@@ -25,12 +25,14 @@ package org.overturetool.vdmj.definitions;
 
 import java.util.HashMap;
 
+import org.overturetool.vdmj.debug.DBGPReader;
 import org.overturetool.vdmj.expressions.UndefinedExpression;
 import org.overturetool.vdmj.lex.LexNameList;
 import org.overturetool.vdmj.lex.LexNameToken;
 import org.overturetool.vdmj.messages.RTLogger;
 import org.overturetool.vdmj.runtime.Context;
 import org.overturetool.vdmj.runtime.ContextException;
+import org.overturetool.vdmj.runtime.StateContext;
 import org.overturetool.vdmj.runtime.ValueException;
 import org.overturetool.vdmj.scheduler.ResourceScheduler;
 import org.overturetool.vdmj.typechecker.Environment;
@@ -50,6 +52,8 @@ import org.overturetool.vdmj.values.ValueSet;
 public class SystemDefinition extends ClassDefinition
 {
 	private static final long serialVersionUID = 1L;
+
+	private static Context systemContext = null;
 
 	public SystemDefinition(LexNameToken className, DefinitionList members)
 	{
@@ -109,8 +113,24 @@ public class SystemDefinition extends ClassDefinition
 		}
 	}
 
-	public void init(ResourceScheduler scheduler, Context ctxt)
+	@Override
+	public void staticInit(Context ctxt)
 	{
+		staticInit = true;
+	}
+
+	@Override
+	public void staticValuesInit(Context ctxt)
+	{
+		staticValuesInit = true;
+		ctxt.putAll(systemContext);
+	}
+
+	public void systemInit(ResourceScheduler scheduler, DBGPReader dbgp)
+	{
+		systemContext = new StateContext(location, "RT system environment");
+		systemContext.setThreadState(dbgp, CPUValue.vCPU);
+
 		try
 		{
 			// First go through the definitions, looking for CPUs to decl
@@ -144,10 +164,15 @@ public class SystemDefinition extends ClassDefinition
 				}
 			}
 
+			// Initialize the system class statics, if any, here
+
+			super.staticInit(systemContext);
+			super.staticValuesInit(systemContext);
+
 			// Run the constructor to do any deploys etc.
 
 			ObjectValue system = makeNewInstance(null, new ValueList(),
-    				ctxt, new HashMap<LexNameToken, ObjectValue>());
+					systemContext, new HashMap<LexNameToken, ObjectValue>());
 
 			// Do CPUs first so that default BUSses can connect all CPUs.
 
@@ -165,8 +190,8 @@ public class SystemDefinition extends ClassDefinition
     				args.add(new QuoteValue("FCFS"));	// Default policy
     				args.add(new RealValue(0));			// Default speed
 
-    				cpu = (CPUValue)instance.newInstance(null, args, ctxt);
-    				v.set(location, cpu, ctxt);
+    				cpu = (CPUValue)instance.newInstance(null, args, systemContext);
+    				v.set(location, cpu, systemContext);
     			}
     			else
     			{
@@ -212,7 +237,8 @@ public class SystemDefinition extends ClassDefinition
 				}
 			}
 
-			BUSValue.createMap(ctxt, cpus);
+			// For efficiency, we create a 2D array of CPU-to-CPU bus links
+			BUSValue.createMap(systemContext, cpus);
 		}
 		catch (ContextException e)
 		{
@@ -225,7 +251,7 @@ public class SystemDefinition extends ClassDefinition
     	catch (Exception e)
     	{
     		throw new ContextException(
-    			4135, "Cannot instantiate a system class", location, ctxt);
+    			4135, "Cannot instantiate a system class", location, systemContext);
     	}
 	}
 

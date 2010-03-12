@@ -86,13 +86,6 @@ public class ClassInterpreter extends Interpreter
 		{
 			setDefaultName(classes.get(0).name.name);
 		}
-
-		systemInit();	// Create one-off system resources
-	}
-
-	private void systemInit()
-	{
-		// ?
 	}
 
 	@Override
@@ -156,10 +149,17 @@ public class ClassInterpreter extends Interpreter
 	}
 
 	@Override
-	public void init(DBGPReader dbgp)
+	public void systemInit(DBGPReader dbgp)
 	{
 		scheduler.init();
-		initialContext = classes.initialize(scheduler, dbgp);
+		classes.systemInit(scheduler, dbgp);
+		init(dbgp);
+	}
+
+	@Override
+	public void init(DBGPReader dbgp)
+	{
+		initialContext = classes.initialize(dbgp);
 		createdValues = new NameValuePairMap();
 		createdDefinitions = new DefinitionSet();
 	}

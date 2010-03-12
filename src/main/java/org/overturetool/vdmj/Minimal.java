@@ -56,7 +56,7 @@ public class Minimal
     		if (TypeChecker.getErrorCount() == 0)
     		{
     			ModuleInterpreter interpreter = new ModuleInterpreter(modules);
-    			interpreter.init(null);
+    			interpreter.systemInit(null);
     			CommandReader reader = new ModuleCommandReader(interpreter, "$ ");
     			List<File> files = new Vector<File>();
     			files.add(file);

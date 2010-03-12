@@ -31,10 +31,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
-import org.overturetool.vdmj.Settings;
 import org.overturetool.vdmj.debug.DBGPReader;
 import org.overturetool.vdmj.expressions.Expression;
-import org.overturetool.vdmj.lex.Dialect;
 import org.overturetool.vdmj.lex.LexLocation;
 import org.overturetool.vdmj.lex.LexNameToken;
 import org.overturetool.vdmj.messages.RTLogger;
@@ -155,9 +153,33 @@ public class ClassList extends Vector<ClassDefinition>
 		}
 	}
 
-	public RootContext initialize(ResourceScheduler scheduler, DBGPReader dbgp)
+	public void systemInit(ResourceScheduler scheduler, DBGPReader dbgp)
 	{
 		SystemDefinition systemClass = null;
+
+		for (ClassDefinition cdef: this)
+		{
+			if (cdef instanceof SystemDefinition)
+			{
+				systemClass = (SystemDefinition)cdef;
+				logSwapIn();
+			}
+		}
+
+		SystemClock.init();
+		CPUValue.init(scheduler);
+		BUSValue.init();
+
+		if (systemClass != null)
+		{
+			systemClass.systemInit(scheduler, dbgp);
+			TransactionValue.commitAll();
+			logSwapOut();
+		}
+	}
+
+	public RootContext initialize(DBGPReader dbgp)
+	{
 		StateContext globalContext = null;
 
 		if (isEmpty())
@@ -170,22 +192,6 @@ public class ClassList extends Vector<ClassDefinition>
 			globalContext =	new StateContext(
 				this.get(0).location, "public static environment");
 		}
-
-		if (Settings.dialect == Dialect.VDM_RT)
-		{
-			for (ClassDefinition cdef: this)
-			{
-    			if (cdef instanceof SystemDefinition)
-    			{
-    				systemClass = (SystemDefinition)cdef;
-    				logSwapIn();
-    			}
-			}
-		}
-
-		SystemClock.init();
-		CPUValue.init(scheduler);
-		BUSValue.init();
 
 		globalContext.setThreadState(dbgp, CPUValue.vCPU);
 
@@ -235,17 +241,6 @@ public class ClassList extends Vector<ClassDefinition>
 		if (failed != null)
 		{
 			throw failed;
-		}
-
-		// If we're VDM-RT and we have a system class, we need to "run"
-		// the default constructor to deploy the objects declared. We
-		// also have to commit any transactional updates made.
-
-		if (systemClass != null)
-		{
-			systemClass.init(scheduler, globalContext);
-			TransactionValue.commitAll();
-			logSwapOut();
 		}
 
 		return globalContext;

@@ -39,6 +39,11 @@ abstract public class Resource
 		this.scheduler = scheduler;
 	}
 
+	public ResourceScheduler getScheduler()
+	{
+		return scheduler;
+	}
+
 	public void setName(String name)
 	{
 		this.name = name;

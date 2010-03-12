@@ -153,6 +153,13 @@ abstract public class Interpreter
 	abstract public void init(DBGPReader dbgp);
 
 	/**
+	 * Initialize the once-only system context. This is used for RT
+	 * specifications which create CPUs and BUSses once at startup.
+	 */
+
+	abstract public void systemInit(DBGPReader dbgp);
+
+	/**
 	 * Parse the line passed, type check it and evaluate it as an expression
 	 * in the initial context.
 	 *

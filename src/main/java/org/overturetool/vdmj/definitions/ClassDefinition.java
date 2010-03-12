@@ -103,9 +103,9 @@ public class ClassDefinition extends Definition
 	/** The public visible static values in the class. */
 	private NameValuePairMap publicStaticValues = null;
 	/** True if the class' static members are initialized. */
-	private boolean staticInit = false;
+	protected boolean staticInit = false;
 	/** True if the class' static values are initialized. */
-	private boolean staticValuesInit = false;
+	protected boolean staticValuesInit = false;
 
 	/** The class invariant operation definition, if any. */
 	public ExplicitOperationDefinition invariant = null;
@@ -910,7 +910,7 @@ public class ClassDefinition extends Definition
 
 	public void staticInit(Context ctxt)
 	{
-		staticInit = false;		// Forced initialization
+		staticInit = false;				// Forced initialization
 		setStaticDefinitions(ctxt);
 	}
 

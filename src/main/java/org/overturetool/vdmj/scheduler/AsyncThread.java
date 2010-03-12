@@ -179,10 +179,15 @@ public class AsyncThread extends SchedulableThread
 		}
 		catch (ValueException e)
 		{
-			if (request.replyTo != null)
-			{
-				request.bus.reply(new MessageResponse(e, request));
-			}
+			breakOthers();
+			ResourceScheduler scheduler = resource.getScheduler();
+			scheduler.raise(new ContextException(e, operation.name.location));
+		}
+		catch (RuntimeException e)
+		{
+			breakOthers();
+			ResourceScheduler scheduler = resource.getScheduler();
+			scheduler.raise(e);
 		}
 		finally
 		{

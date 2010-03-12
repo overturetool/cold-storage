@@ -159,17 +159,17 @@ public class ModuleInterpreter extends Interpreter
 		return modules;
 	}
 
-	/**
-	 * Initialize the initial environment. This includes the initialization
-	 * of the state variables of all modules, if any.
-	 *
-	 * @throws Exception
-	 */
+
+	@Override
+	public void systemInit(DBGPReader dbgp)
+	{
+		scheduler.init();
+		init(dbgp);
+	}
 
 	@Override
 	public void init(DBGPReader dbgp)
 	{
-		scheduler.init();
 		initialContext = modules.initialize(scheduler, dbgp);
 	}
 

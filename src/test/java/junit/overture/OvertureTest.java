@@ -135,7 +135,7 @@ abstract public class OvertureTest extends TestCase
 		try
 		{
 			Interpreter interpreter = new ClassInterpreter(classes);
-			interpreter.init(null);
+			interpreter.systemInit(null);
 
 			interpreter.execute(new File(assertName));
 			fail("Expecting a runtime error");
@@ -192,7 +192,7 @@ abstract public class OvertureTest extends TestCase
 		try
 		{
 			Interpreter interpreter = new ClassInterpreter(classes);
-			interpreter.init(null);
+			interpreter.systemInit(null);
 
 			Value result = interpreter.execute(new File(assertName));
 
@@ -275,7 +275,7 @@ abstract public class OvertureTest extends TestCase
 		try
 		{
 			Interpreter interpreter = new ClassInterpreter(classes);
-			interpreter.init(null);
+			interpreter.systemInit(null);
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			PrintWriter pw = new PrintWriter(out);
 			TraceStatement.setOutput(pw);
@@ -315,7 +315,7 @@ abstract public class OvertureTest extends TestCase
 		try
 		{
 			Interpreter interpreter = new ClassInterpreter(new ClassList());
-			interpreter.init(null);
+			interpreter.systemInit(null);
 
 			Value assertions = interpreter.execute(new File(assertName));
 

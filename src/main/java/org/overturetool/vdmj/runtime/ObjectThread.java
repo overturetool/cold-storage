@@ -27,6 +27,7 @@ import org.overturetool.vdmj.Settings;
 import org.overturetool.vdmj.debug.DBGPReader;
 import org.overturetool.vdmj.debug.DBGPReason;
 import org.overturetool.vdmj.lex.LexLocation;
+import org.overturetool.vdmj.scheduler.ResourceScheduler;
 import org.overturetool.vdmj.scheduler.SchedulableThread;
 import org.overturetool.vdmj.values.CPUValue;
 import org.overturetool.vdmj.values.ObjectValue;
@@ -97,7 +98,15 @@ public class ObjectThread extends SchedulableThread
 		}
 		catch (ValueException e)
 		{
-			throw new ContextException(e, ctxt.location);
+			breakOthers();
+			ResourceScheduler scheduler = resource.getScheduler();
+			scheduler.raise(new ContextException(e, ctxt.location));
+		}
+		catch (RuntimeException e)
+		{
+			breakOthers();
+			ResourceScheduler scheduler = resource.getScheduler();
+			scheduler.raise(e);
 		}
 		finally
 		{

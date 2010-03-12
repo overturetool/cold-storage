@@ -166,7 +166,15 @@ public class PeriodicThread extends SchedulableThread
 		}
 		catch (ValueException e)
 		{
-			throw new ContextException(e, operation.name.location);
+			breakOthers();
+			ResourceScheduler scheduler = resource.getScheduler();
+			scheduler.raise(new ContextException(e, operation.name.location));
+		}
+		catch (RuntimeException e)
+		{
+			breakOthers();
+			ResourceScheduler scheduler = resource.getScheduler();
+			scheduler.raise(e);
 		}
 		finally
 		{
