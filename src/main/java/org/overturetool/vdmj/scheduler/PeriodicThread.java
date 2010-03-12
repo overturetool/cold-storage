@@ -126,7 +126,7 @@ public class PeriodicThread extends SchedulableThread
     			ctxt.setThreadState(reader, object.getCPU());
 
         		operation.localEval(
-        			operation.name.location, new ValueList(), ctxt, false);
+        			operation.name.location, new ValueList(), ctxt, true);
     		}
     		catch (ValueException e)
     		{
@@ -162,7 +162,7 @@ public class PeriodicThread extends SchedulableThread
     		ctxt.setThreadState(null, object.getCPU());
 
     		operation.localEval(
-    			operation.name.location, new ValueList(), ctxt, false);
+    			operation.name.location, new ValueList(), ctxt, true);
 		}
 		catch (ValueException e)
 		{
