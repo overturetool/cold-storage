@@ -23,64 +23,31 @@
 
 package org.overturetool.vdmj.runtime;
 
-import org.overturetool.vdmj.Settings;
-import org.overturetool.vdmj.debug.DBGPReader;
-import org.overturetool.vdmj.debug.DBGPReason;
 import org.overturetool.vdmj.expressions.Expression;
-import org.overturetool.vdmj.lex.LexLocation;
 import org.overturetool.vdmj.scheduler.CPUResource;
 import org.overturetool.vdmj.scheduler.SchedulableThread;
-import org.overturetool.vdmj.values.CPUValue;
-import org.overturetool.vdmj.values.ObjectValue;
-import org.overturetool.vdmj.values.OperationValue;
 import org.overturetool.vdmj.values.TransactionValue;
 import org.overturetool.vdmj.values.UndefinedValue;
 import org.overturetool.vdmj.values.Value;
-import org.overturetool.vdmj.values.ValueList;
 
 /**
- * A class representing a VDM thread.
+ * A class representing the main VDM thread.
  */
 
 public class MainThread extends SchedulableThread
 {
-	public final ObjectValue object;
-	public final OperationValue operation;
 	public final Context ctxt;
-	public final String title;
-	public final boolean breakAtStart;
 	public final Expression expression;
 
 	private Value result = new UndefinedValue();
 	private RuntimeException exception = null;
 
-	public MainThread(LexLocation location, ObjectValue object, Context ctxt)
-		throws ValueException
-	{
-		super(object.getCPU().resource, object, 0, false, 0);
-
-		this.title =
-			"Thread " + getId() +
-			", self #" + object.objectReference +
-			", class " + object.type.name.name;
-
-		this.object = object;
-		this.ctxt = new ObjectContext(location, title, ctxt.getGlobal(), object);
-		this.operation = object.getThreadOperation(ctxt);
-		this.breakAtStart = ctxt.threadState.isStepping();
-		this.expression = null;
-	}
-
 	public MainThread(Expression expr, Context ctxt)
 	{
 		super(CPUResource.vCPU, null, 0, false, 0);
 
-		this.object = null;
-		this.operation = null;
-		this.title = "main";
 		this.expression = expr;
 		this.ctxt = ctxt;
-		this.breakAtStart = false;
 	}
 
 	@Override
@@ -92,89 +59,13 @@ public class MainThread extends SchedulableThread
 	@Override
 	public void body()
 	{
-		if (Settings.usingDBGP)
-		{
-			runDBGP();
-		}
-		else
-		{
-			runCmd();
-		}
-	}
-
-	private void runCmd()
-	{
 		try
 		{
-			if (expression != null)
-			{
-				result = expression.eval(ctxt);
-			}
-			else
-			{
-     			ctxt.setThreadState(null, operation.getCPU());
-
-    			if (breakAtStart)
-    			{
-    				// Step at the first location you check (start of body)
-    				ctxt.threadState.setBreaks(new LexLocation(), null, null);
-    			}
-
-    			result = operation.eval(ctxt.location, new ValueList(), ctxt);
-			}
-		}
-		catch (ValueException e)
-		{
-			exception = new ContextException(e, ctxt.location);
+			result = expression.eval(ctxt);
 		}
 		catch (RuntimeException e)
 		{
 			exception = e;
-		}
-		finally
-		{
-			TransactionValue.commitAll();
-		}
-	}
-
-	private void runDBGP()
-	{
-		DBGPReader reader = null;
-
-		try
-		{
-			if (expression != null)
-			{
-				reader = ctxt.threadState.dbgp;
-				result = expression.eval(ctxt);
-			}
-			else
-			{
-    			CPUValue cpu = operation.getCPU();
-    			reader = ctxt.threadState.dbgp.newThread(cpu);
-    			ctxt.setThreadState(reader, cpu);
-
-    			if (breakAtStart)
-    			{
-    				// Step at the first location you check (start of body)
-    				ctxt.threadState.setBreaks(new LexLocation(), null, null);
-    			}
-
-    			result = operation.eval(ctxt.location, new ValueList(), ctxt);
-			}
-
-			reader.complete(DBGPReason.OK, null);
-		}
-		catch (ContextException e)
-		{
-			reader.complete(DBGPReason.EXCEPTION, e);
-		}
-		catch (Exception e)
-		{
-			if (reader != null)
-			{
-				reader.complete(DBGPReason.EXCEPTION, null);
-			}
 		}
 		finally
 		{

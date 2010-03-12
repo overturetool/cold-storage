@@ -32,8 +32,8 @@ import org.overturetool.vdmj.pog.ProofObligationList;
 import org.overturetool.vdmj.runtime.ClassInterpreter;
 import org.overturetool.vdmj.runtime.Context;
 import org.overturetool.vdmj.runtime.ObjectContext;
+import org.overturetool.vdmj.runtime.ObjectThread;
 import org.overturetool.vdmj.runtime.RootContext;
-import org.overturetool.vdmj.runtime.MainThread;
 import org.overturetool.vdmj.runtime.ValueException;
 import org.overturetool.vdmj.scheduler.AsyncThread;
 import org.overturetool.vdmj.scheduler.PeriodicThread;
@@ -192,12 +192,12 @@ public class StartStatement extends Statement
 
 				for (Value v: set)
 				{
-					new MainThread(location, v.objectValue(ctxt), ctxt).start();
+					new ObjectThread(location, v.objectValue(ctxt), ctxt).start();
 				}
 			}
 			else
 			{
-				new MainThread(location, value.objectValue(ctxt), ctxt).start();
+				new ObjectThread(location, value.objectValue(ctxt), ctxt).start();
 			}
 
 			return new VoidValue();
