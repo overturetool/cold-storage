@@ -40,8 +40,10 @@ import org.overturetool.vdmj.lex.LexLocation;
 import org.overturetool.vdmj.lex.LexNameToken;
 import org.overturetool.vdmj.lex.LexTokenReader;
 import org.overturetool.vdmj.messages.Console;
+import org.overturetool.vdmj.messages.RTLogger;
 import org.overturetool.vdmj.messages.VDMErrorsException;
 import org.overturetool.vdmj.pog.ProofObligationList;
+import org.overturetool.vdmj.scheduler.SystemClock;
 import org.overturetool.vdmj.statements.Statement;
 import org.overturetool.vdmj.syntax.ExpressionReader;
 import org.overturetool.vdmj.traces.CallSequence;
@@ -54,6 +56,7 @@ import org.overturetool.vdmj.typechecker.PrivateClassEnvironment;
 import org.overturetool.vdmj.typechecker.PublicClassEnvironment;
 import org.overturetool.vdmj.types.Type;
 import org.overturetool.vdmj.util.Utils;
+import org.overturetool.vdmj.values.BUSValue;
 import org.overturetool.vdmj.values.CPUValue;
 import org.overturetool.vdmj.values.NameValuePair;
 import org.overturetool.vdmj.values.NameValuePairList;
@@ -153,8 +156,13 @@ public class ClassInterpreter extends Interpreter
 	{
 		scheduler.init();
 		CPUValue.init(scheduler);
+		SystemClock.init();
+		BUSValue.init();
+
+		logSwapIn();
 		init(dbgp);
 		classes.systemInit(scheduler, dbgp);
+		logSwapOut();
 	}
 
 	@Override
@@ -408,5 +416,35 @@ public class ClassInterpreter extends Interpreter
 		}
 
 		return list;
+	}
+
+	private void logSwapIn()
+	{
+		// Show the "system constructor" thread creation
+
+		RTLogger.log(
+			"ThreadCreate -> id: " + Thread.currentThread().getId() +
+			" period: false " +
+			" objref: nil clnm: nil " +
+			" cpunm: 0");
+
+		RTLogger.log(
+			"ThreadSwapIn -> id: " + Thread.currentThread().getId() +
+			" objref: nil clnm: nil " +
+			" cpunm: 0" +
+			" overhead: 0");
+	}
+
+	private void logSwapOut()
+	{
+		RTLogger.log(
+			"ThreadSwapOut -> id: " + Thread.currentThread().getId() +
+			" objref: nil clnm: nil " +
+			" cpunm: 0" +
+			" overhead: 0");
+
+		RTLogger.log(
+			"ThreadKill -> id: " + Thread.currentThread().getId() +
+			" cpunm: 0");
 	}
 }

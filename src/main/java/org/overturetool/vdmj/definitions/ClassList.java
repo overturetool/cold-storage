@@ -35,18 +35,15 @@ import org.overturetool.vdmj.debug.DBGPReader;
 import org.overturetool.vdmj.expressions.Expression;
 import org.overturetool.vdmj.lex.LexLocation;
 import org.overturetool.vdmj.lex.LexNameToken;
-import org.overturetool.vdmj.messages.RTLogger;
 import org.overturetool.vdmj.pog.POContextStack;
 import org.overturetool.vdmj.pog.ProofObligationList;
 import org.overturetool.vdmj.runtime.ContextException;
 import org.overturetool.vdmj.runtime.RootContext;
 import org.overturetool.vdmj.runtime.StateContext;
 import org.overturetool.vdmj.scheduler.ResourceScheduler;
-import org.overturetool.vdmj.scheduler.SystemClock;
 import org.overturetool.vdmj.statements.Statement;
 import org.overturetool.vdmj.typechecker.Environment;
 import org.overturetool.vdmj.typechecker.NameScope;
-import org.overturetool.vdmj.values.BUSValue;
 import org.overturetool.vdmj.values.CPUValue;
 import org.overturetool.vdmj.values.TransactionValue;
 
@@ -162,19 +159,9 @@ public class ClassList extends Vector<ClassDefinition>
 			if (cdef instanceof SystemDefinition)
 			{
 				systemClass = (SystemDefinition)cdef;
-				logSwapIn();
+				systemClass.systemInit(scheduler, dbgp);
+				TransactionValue.commitAll();
 			}
-		}
-
-		SystemClock.init();
-//		CPUValue.init(scheduler);
-		BUSValue.init();
-
-		if (systemClass != null)
-		{
-			systemClass.systemInit(scheduler, dbgp);
-			TransactionValue.commitAll();
-			logSwapOut();
 		}
 	}
 
@@ -351,35 +338,5 @@ public class ClassList extends Vector<ClassDefinition>
 
 		obligations.trivialCheck();
 		return obligations;
-	}
-
-	private void logSwapIn()
-	{
-		// Show the "system constructor" thread creation
-
-		RTLogger.log(
-			"ThreadCreate -> id: " + Thread.currentThread().getId() +
-			" period: false " +
-			" objref: nil clnm: nil " +
-			" cpunm: 0");
-
-		RTLogger.log(
-			"ThreadSwapIn -> id: " + Thread.currentThread().getId() +
-			" objref: nil clnm: nil " +
-			" cpunm: 0" +
-			" overhead: 0");
-	}
-
-	private void logSwapOut()
-	{
-		RTLogger.log(
-			"ThreadSwapOut -> id: " + Thread.currentThread().getId() +
-			" objref: nil clnm: nil " +
-			" cpunm: 0" +
-			" overhead: 0");
-
-		RTLogger.log(
-			"ThreadKill -> id: " + Thread.currentThread().getId() +
-			" cpunm: 0");
 	}
 }
