@@ -23,8 +23,11 @@
 
 package org.overturetool.vdmj.scheduler;
 
-abstract public class Resource
+import java.io.Serializable;
+
+abstract public class Resource implements Serializable
 {
+    private static final long serialVersionUID = 1L;
 	public final SchedulingPolicy policy;
 	protected String name = "unknown";
 	protected ResourceScheduler scheduler;

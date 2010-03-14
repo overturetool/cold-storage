@@ -167,7 +167,7 @@ public class ClassList extends Vector<ClassDefinition>
 		}
 
 		SystemClock.init();
-		CPUValue.init(scheduler);
+//		CPUValue.init(scheduler);
 		BUSValue.init();
 
 		if (systemClass != null)

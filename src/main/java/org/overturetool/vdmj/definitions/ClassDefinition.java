@@ -55,6 +55,7 @@ import org.overturetool.vdmj.types.OperationType;
 import org.overturetool.vdmj.types.Type;
 import org.overturetool.vdmj.types.TypeList;
 import org.overturetool.vdmj.util.Delegate;
+import org.overturetool.vdmj.values.CPUValue;
 import org.overturetool.vdmj.values.ClassInvariantListener;
 import org.overturetool.vdmj.values.NameValuePairList;
 import org.overturetool.vdmj.values.NameValuePairMap;
@@ -1278,7 +1279,12 @@ public class ClassDefinition extends Definition
 
 		if (Settings.dialect ==	Dialect.VDM_RT)
 		{
-			object.getCPU().deploy(object);
+			CPUValue cpu = object.getCPU();
+			
+			if (cpu != null)
+			{
+				cpu.deploy(object);
+			}
 		}
 
 		if (ctor != null)	// Class may have no constructor defined

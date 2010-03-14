@@ -28,6 +28,7 @@ import org.overturetool.vdmj.values.ObjectValue;
 
 public class CPUResource extends Resource
 {
+    private static final long serialVersionUID = 1L;
 	private static int nextCPU = 0;
 	public static CPUResource vCPU = null;
 

@@ -30,6 +30,7 @@ import org.overturetool.vdmj.config.Properties;
 
 public class FPPolicy extends FCFSPolicy
 {
+    private static final long serialVersionUID = 1L;
 	private final Map<SchedulableThread, Long> priorities;
 
 	public FPPolicy()

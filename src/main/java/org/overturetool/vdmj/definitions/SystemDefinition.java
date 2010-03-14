@@ -113,18 +113,18 @@ public class SystemDefinition extends ClassDefinition
 		}
 	}
 
-	@Override
-	public void staticInit(Context ctxt)
-	{
-		staticInit = true;
-	}
-
-	@Override
-	public void staticValuesInit(Context ctxt)
-	{
-		staticValuesInit = true;
-		ctxt.putAll(systemContext);
-	}
+//	@Override
+//	public void staticInit(Context ctxt)
+//	{
+//		staticInit = true;
+//	}
+//
+//	@Override
+//	public void staticValuesInit(Context ctxt)
+//	{
+//		staticValuesInit = true;
+//		ctxt.putAll(systemContext);
+//	}
 
 	public void systemInit(ResourceScheduler scheduler, DBGPReader dbgp)
 	{
@@ -166,8 +166,8 @@ public class SystemDefinition extends ClassDefinition
 
 			// Initialize the system class statics, if any, here
 
-			super.staticInit(systemContext);
-			super.staticValuesInit(systemContext);
+//			super.staticInit(systemContext);
+//			super.staticValuesInit(systemContext);
 
 			// Run the constructor to do any deploys etc.
 

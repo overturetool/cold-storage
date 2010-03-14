@@ -30,6 +30,7 @@ import org.overturetool.vdmj.config.Properties;
 
 public class FCFSPolicy extends SchedulingPolicy
 {
+    private static final long serialVersionUID = 1L;
 	protected final List<SchedulableThread> threads;
 	protected SchedulableThread bestThread = null;
 	protected long minimumDuration = -1;

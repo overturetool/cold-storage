@@ -23,11 +23,13 @@
 
 package org.overturetool.vdmj.scheduler;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
-public class ControlQueue
+public class ControlQueue implements Serializable
 {
+    private static final long serialVersionUID = 1L;
 	private SchedulableThread joined = null;
 	private boolean stimmed = false;
 	private List<SchedulableThread> waiters = new LinkedList<SchedulableThread>();

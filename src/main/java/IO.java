@@ -26,6 +26,7 @@
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
 
 import org.overturetool.vdmj.expressions.Expression;
 import org.overturetool.vdmj.lex.Dialect;
@@ -49,8 +50,9 @@ import org.overturetool.vdmj.values.VoidValue;
  * This class contains the code for native IO operations.
  */
 
-public class IO
+public class IO implements Serializable
 {
+    private static final long serialVersionUID = 1L;
 	private static String lastError = "";
 
 	public static Value writeval(Value tval)

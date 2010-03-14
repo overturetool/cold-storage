@@ -152,8 +152,9 @@ public class ClassInterpreter extends Interpreter
 	public void systemInit(DBGPReader dbgp)
 	{
 		scheduler.init();
-		classes.systemInit(scheduler, dbgp);
+		CPUValue.init(scheduler);
 		init(dbgp);
+		classes.systemInit(scheduler, dbgp);
 	}
 
 	@Override

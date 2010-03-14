@@ -30,6 +30,7 @@ import org.overturetool.vdmj.messages.RTLogger;
 
 public class BUSResource extends Resource
 {
+    private static final long serialVersionUID = 1L;
 	private static int nextBUS = 1;
 	private static BUSResource vBUS = null;
 

@@ -23,13 +23,16 @@
 
 package org.overturetool.vdmj.scheduler;
 
+import java.io.Serializable;
+
 import org.overturetool.vdmj.values.BUSValue;
 import org.overturetool.vdmj.values.CPUValue;
 import org.overturetool.vdmj.values.ObjectValue;
 import org.overturetool.vdmj.values.OperationValue;
 
-public abstract class MessagePacket
+public abstract class MessagePacket implements Serializable
 {
+    private static final long serialVersionUID = 1L;
 	private static long nextId = 1;
 
 	public final long msgId;

@@ -23,12 +23,15 @@
 
 package org.overturetool.vdmj.values;
 
+import java.io.Serializable;
+
 import org.overturetool.vdmj.lex.LexLocation;
 import org.overturetool.vdmj.runtime.Context;
 import org.overturetool.vdmj.scheduler.ControlQueue;
 
-public class GuardValueListener implements ValueListener
+public class GuardValueListener implements ValueListener, Serializable
 {
+    private static final long serialVersionUID = 1L;
 	private final ObjectValue self;
 
 	public GuardValueListener(ObjectValue self)

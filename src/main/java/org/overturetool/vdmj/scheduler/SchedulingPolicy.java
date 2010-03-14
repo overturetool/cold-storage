@@ -23,10 +23,14 @@
 
 package org.overturetool.vdmj.scheduler;
 
+import java.io.Serializable;
+
 import org.overturetool.vdmj.scheduler.SchedulingPolicy;
 
-abstract public class SchedulingPolicy
+abstract public class SchedulingPolicy implements Serializable
 {
+    private static final long serialVersionUID = 1L;
+
 	abstract public boolean reschedule();
 	abstract public SchedulableThread getThread();
 	abstract public long getTimeslice();

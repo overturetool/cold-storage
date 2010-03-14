@@ -23,8 +23,11 @@
 
 package org.overturetool.vdmj.scheduler;
 
-public class Holder<T>
+import java.io.Serializable;
+
+public class Holder<T> implements Serializable
 {
+    private static final long serialVersionUID = 1L;
 	private ControlQueue cq = new ControlQueue();
 	private T contents = null;
 

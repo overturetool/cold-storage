@@ -23,6 +23,7 @@
 
 package org.overturetool.vdmj.scheduler;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -31,8 +32,10 @@ import org.overturetool.vdmj.config.Properties;
 import org.overturetool.vdmj.lex.Dialect;
 import org.overturetool.vdmj.values.ObjectValue;
 
-public abstract class SchedulableThread extends Thread
+public abstract class SchedulableThread extends Thread implements Serializable
 {
+    private static final long serialVersionUID = 1L;
+
 	private static List<SchedulableThread> allThreads =
 						new LinkedList<SchedulableThread>();
 
