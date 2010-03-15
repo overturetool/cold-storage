@@ -31,6 +31,7 @@ import org.overturetool.vdmj.values.ValueList;
 
 public class MessageRequest extends MessagePacket
 {
+	private static final long serialVersionUID = 1L;
 	public final boolean breakAtStart;
 	public final ValueList args;
 	public final Holder<MessageResponse> replyTo;

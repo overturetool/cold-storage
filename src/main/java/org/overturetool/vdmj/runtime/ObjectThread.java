@@ -41,6 +41,7 @@ import org.overturetool.vdmj.values.ValueList;
 
 public class ObjectThread extends SchedulableThread
 {
+	private static final long serialVersionUID = 1L;
 	public final ObjectValue object;
 	public final OperationValue operation;
 	public final Context ctxt;

@@ -36,6 +36,7 @@ import org.overturetool.vdmj.values.Value;
 
 public class MainThread extends SchedulableThread
 {
+	private static final long serialVersionUID = 1L;
 	public final Context ctxt;
 	public final Expression expression;
 

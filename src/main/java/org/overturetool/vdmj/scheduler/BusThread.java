@@ -25,6 +25,8 @@ package org.overturetool.vdmj.scheduler;
 
 public class BusThread extends SchedulableThread
 {
+	private static final long serialVersionUID = 1L;
+
 	public BusThread(Resource resource, long priority)
 	{
 		super(resource, null, priority, false, 0);

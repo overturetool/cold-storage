@@ -42,6 +42,7 @@ import org.overturetool.vdmj.values.ValueList;
 
 public class PeriodicThread extends SchedulableThread
 {
+	private static final long serialVersionUID = 1L;
 	private final OperationValue operation;
 	private final long period;
 	private final long jitter;

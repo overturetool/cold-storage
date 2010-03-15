@@ -54,6 +54,7 @@ import org.overturetool.vdmj.scheduler.Holder;
 import org.overturetool.vdmj.scheduler.MessageRequest;
 import org.overturetool.vdmj.scheduler.MessageResponse;
 import org.overturetool.vdmj.scheduler.ResourceScheduler;
+import org.overturetool.vdmj.scheduler.SchedulableThread;
 import org.overturetool.vdmj.statements.Statement;
 import org.overturetool.vdmj.types.OperationType;
 import org.overturetool.vdmj.types.PatternListTypePair;
@@ -405,6 +406,11 @@ public class OperationValue extends Value
 
 	private void guard(Context ctxt) throws ValueException
 	{
+		if (!(Thread.currentThread() instanceof SchedulableThread))
+		{
+			return;		// Probably during initialization.
+		}
+
 		guardCQ.join();
 
 		while (true)
@@ -601,7 +607,7 @@ public class OperationValue extends Value
 	private synchronized void act()
 	{
 		hashAct++;
-		
+
 		if (!ResourceScheduler.isStopping())
 		{
 			trace("OpActivate");
@@ -649,7 +655,7 @@ public class OperationValue extends Value
 		}
 	}
 
-	private void debug(String string)
+	private void debug(@SuppressWarnings("unused") String string)
 	{
 //		System.err.println(String.format("%s %s %s",
 //				Thread.currentThread(), name, string));
