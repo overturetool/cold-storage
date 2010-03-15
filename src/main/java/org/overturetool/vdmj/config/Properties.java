@@ -33,11 +33,11 @@ import org.overturetool.vdmj.util.ConfigBase;
 
 public class Properties extends ConfigBase
 {
-	/** The default duration for RT statements executed in a block. */
+	/** The default duration for RT statements. */
 	public static int rt_duration_default = 2;
 
-	/** The default timeslice (statements) for a FCFS policy */
-	public static int scheduler_fcfs_timeslice = 10;
+	/** The default timeslice (statements executed) for a FCFS policy */
+	public static int scheduler_fcfs_timeslice = 100;
 
 	/**
 	 * When the class is initialized, we call the ConfigBase init method, which

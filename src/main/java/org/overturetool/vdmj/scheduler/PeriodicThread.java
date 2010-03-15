@@ -53,6 +53,8 @@ public class PeriodicThread extends SchedulableThread
 	private final boolean first;
 	private final static Random PRNG = new Random();
 
+	private boolean running = false;
+
 	public PeriodicThread(
 		ObjectValue self, OperationValue operation,
 		long period, long jitter, long delay, long offset, long expected)
@@ -100,6 +102,8 @@ public class PeriodicThread extends SchedulableThread
 		new PeriodicThread(
 			getObject(), operation, period, jitter, delay, 0,
 			nextTime()).start();
+
+		running = true;
 
 		if (Settings.usingDBGP)
 		{
@@ -213,5 +217,14 @@ public class PeriodicThread extends SchedulableThread
 	public static void reset()
 	{
 		PRNG.setSeed(123);		// Always the same sequence
+	}
+
+	@Override
+	public boolean isActive()
+	{
+		// The initial timestep does not count as a deadlock wait
+
+		return (running && state == RunState.TIMESTEP) ||
+				state == RunState.WAITING;
 	}
 }

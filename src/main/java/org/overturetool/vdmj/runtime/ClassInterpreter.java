@@ -169,6 +169,15 @@ public class ClassInterpreter extends Interpreter
 	}
 
 	@Override
+	public void traceInit()
+	{
+		SystemClock.init();
+		initialContext = classes.initialize(null);
+		createdValues = new NameValuePairMap();
+		createdDefinitions = new DefinitionSet();
+	}
+
+	@Override
 	protected Expression parseExpression(String line, String module)
 		throws Exception
 	{

@@ -117,6 +117,7 @@ public class BUSValue extends ObjectValue
 	public static void init()
 	{
 		BUSResource.init();
+		busses.clear();
 		// Can't create the vBUS until we know all the CPUs.
 	}
 

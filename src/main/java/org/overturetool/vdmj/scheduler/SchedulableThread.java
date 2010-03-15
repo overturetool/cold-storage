@@ -43,7 +43,7 @@ public abstract class SchedulableThread extends Thread implements Serializable
 	protected final ObjectValue object;
 	private final boolean periodic;
 
-	private RunState state;
+	protected RunState state;
 	private Signal signal;
 	private long timeslice;
 	private long steps;
@@ -286,6 +286,11 @@ public abstract class SchedulableThread extends Thread implements Serializable
 	public boolean isPeriodic()
 	{
 		return periodic;
+	}
+
+	public boolean isActive()
+	{
+		return state == RunState.TIMESTEP || state == RunState.WAITING;
 	}
 
 	public void setTimestep(long timestep)

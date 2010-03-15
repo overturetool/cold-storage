@@ -153,6 +153,14 @@ abstract public class Interpreter
 	abstract public void init(DBGPReader dbgp);
 
 	/**
+	 * Initialize the context between trace sequences. This is less
+	 * thorough than the full init, since it does not reset the scheduler
+	 * for example.
+	 */
+
+	abstract public void traceInit();
+
+	/**
 	 * Parse the line passed, type check it and evaluate it as an expression
 	 * in the initial context.
 	 *
