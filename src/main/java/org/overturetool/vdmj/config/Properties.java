@@ -39,6 +39,9 @@ public class Properties extends ConfigBase
 	/** The default timeslice (statements executed) for a FCFS policy */
 	public static int scheduler_fcfs_timeslice = 100;
 
+	/** Enable transactional variable updates. */
+	public static boolean rt_duration_transactions = false;
+
 	/**
 	 * When the class is initialized, we call the ConfigBase init method, which
 	 * uses the properties file passed to update the static fields above.

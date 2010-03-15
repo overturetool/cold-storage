@@ -655,7 +655,11 @@ public class OperationValue extends Value
 		}
 	}
 
-	private void debug(@SuppressWarnings("unused") String string)
+	/**
+	 * @param string
+	 */
+
+	private void debug(String string)
 	{
 //		System.err.println(String.format("%s %s %s",
 //				Thread.currentThread(), name, string));
