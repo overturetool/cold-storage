@@ -540,7 +540,7 @@ public class DBGPReader
 	private void startup(RemoteControl remote) throws IOException
 	{
 		remoteControl = remote;		// Main thread only
-		interpreter.systemInit(this);
+		interpreter.init(this);
 		connect();
 	}
 

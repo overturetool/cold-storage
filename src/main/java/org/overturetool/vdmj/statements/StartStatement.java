@@ -32,9 +32,9 @@ import org.overturetool.vdmj.pog.ProofObligationList;
 import org.overturetool.vdmj.runtime.ClassInterpreter;
 import org.overturetool.vdmj.runtime.Context;
 import org.overturetool.vdmj.runtime.ObjectContext;
-import org.overturetool.vdmj.runtime.ObjectThread;
 import org.overturetool.vdmj.runtime.RootContext;
 import org.overturetool.vdmj.runtime.ValueException;
+import org.overturetool.vdmj.scheduler.ObjectThread;
 import org.overturetool.vdmj.scheduler.PeriodicThread;
 import org.overturetool.vdmj.typechecker.Environment;
 import org.overturetool.vdmj.typechecker.NameScope;
@@ -174,7 +174,6 @@ public class StartStatement extends Statement
 		}
 		else
 		{
-			// new AsyncThread(target, op, new ValueList(), stepping).start();
 			new ObjectThread(location, target, ctxt).start();
 		}
 	}

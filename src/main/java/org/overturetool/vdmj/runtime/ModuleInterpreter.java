@@ -161,15 +161,9 @@ public class ModuleInterpreter extends Interpreter
 
 
 	@Override
-	public void systemInit(DBGPReader dbgp)
-	{
-		scheduler.init();
-		init(dbgp);
-	}
-
-	@Override
 	public void init(DBGPReader dbgp)
 	{
+		scheduler.init();
 		initialContext = modules.initialize(scheduler, dbgp);
 	}
 

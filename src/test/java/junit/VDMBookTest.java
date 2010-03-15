@@ -62,7 +62,7 @@ public class VDMBookTest extends VDMTestCase
 		assertEquals("Type check errors", 0, TypeChecker.getErrorCount());
 
 		ClassInterpreter interpreter = new ClassInterpreter(classes);
-		interpreter.systemInit(null);
+		interpreter.init(null);
 		CommandReader reader = new ClassCommandReader(interpreter, "");
 		boolean OK = reader.assertFile(new File(assertions));
 		assertEquals("Execution errors", true, OK);

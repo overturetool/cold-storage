@@ -319,7 +319,7 @@ abstract public class VDMJ
 										i.setDefaultName(defaultName);
 									}
 
-									i.systemInit(null);
+									i.init(null);
 
 									try
 									{

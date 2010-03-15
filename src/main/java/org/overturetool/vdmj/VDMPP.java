@@ -295,7 +295,7 @@ public class VDMPP extends VDMJ
 		{
    			long before = System.currentTimeMillis();
    			interpreter = getInterpreter();
-   			interpreter.systemInit(null);
+   			interpreter.init(null);
 
    			if (defaultName != null)
    			{

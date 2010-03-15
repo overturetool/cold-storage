@@ -152,23 +152,18 @@ public class ClassInterpreter extends Interpreter
 	}
 
 	@Override
-	public void systemInit(DBGPReader dbgp)
+	public void init(DBGPReader dbgp)
 	{
 		scheduler.init();
-		CPUValue.init(scheduler);
 		SystemClock.init();
+		CPUValue.init(scheduler);
 		BUSValue.init();
 
 		logSwapIn();
-		init(dbgp);
+		initialContext = classes.initialize(dbgp);
 		classes.systemInit(scheduler, dbgp);
 		logSwapOut();
-	}
 
-	@Override
-	public void init(DBGPReader dbgp)
-	{
-		initialContext = classes.initialize(dbgp);
 		createdValues = new NameValuePairMap();
 		createdDefinitions = new DefinitionSet();
 	}

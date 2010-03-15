@@ -21,14 +21,16 @@
  *
  ******************************************************************************/
 
-package org.overturetool.vdmj.runtime;
+package org.overturetool.vdmj.scheduler;
 
 import org.overturetool.vdmj.Settings;
 import org.overturetool.vdmj.debug.DBGPReader;
 import org.overturetool.vdmj.debug.DBGPReason;
 import org.overturetool.vdmj.lex.LexLocation;
-import org.overturetool.vdmj.scheduler.ResourceScheduler;
-import org.overturetool.vdmj.scheduler.SchedulableThread;
+import org.overturetool.vdmj.runtime.Context;
+import org.overturetool.vdmj.runtime.ContextException;
+import org.overturetool.vdmj.runtime.ObjectContext;
+import org.overturetool.vdmj.runtime.ValueException;
 import org.overturetool.vdmj.values.CPUValue;
 import org.overturetool.vdmj.values.ObjectValue;
 import org.overturetool.vdmj.values.OperationValue;
@@ -42,7 +44,6 @@ import org.overturetool.vdmj.values.ValueList;
 public class ObjectThread extends SchedulableThread
 {
 	private static final long serialVersionUID = 1L;
-	public final ObjectValue object;
 	public final OperationValue operation;
 	public final Context ctxt;
 	public final String title;
@@ -58,7 +59,6 @@ public class ObjectThread extends SchedulableThread
 			", self #" + object.objectReference +
 			", class " + object.type.name.name;
 
-		this.object = object;
 		this.ctxt = new ObjectContext(location, title, ctxt.getGlobal(), object);
 		this.operation = object.getThreadOperation(ctxt);
 		this.breakAtStart = ctxt.threadState.isStepping();

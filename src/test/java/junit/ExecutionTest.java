@@ -86,7 +86,7 @@ public class ExecutionTest extends TestCase
 		assertEquals("Type check errors", 0, TypeChecker.getErrorCount());
 
 		ModuleInterpreter interpreter = new ModuleInterpreter(modules);
-		interpreter.systemInit(null);
+		interpreter.init(null);
 		CommandReader reader = new ModuleCommandReader(interpreter, "");
 		boolean OK = reader.assertFile(new File(assertions));
 		assertEquals("Execution errors", true, OK);
@@ -98,7 +98,7 @@ public class ExecutionTest extends TestCase
 		String file = url.getPath();
 
 		ModuleInterpreter interpreter = new ModuleInterpreter(new ModuleList());
-		interpreter.systemInit(null);
+		interpreter.init(null);
 		CommandReader reader = new ModuleCommandReader(interpreter, "");
 		boolean OK = reader.assertFile(new File(file));
 		assertEquals("Execution errors", true, OK);
