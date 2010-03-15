@@ -66,12 +66,6 @@ public abstract class SchedulableThread extends Thread implements Serializable
 
 		resource.register(this, priority);
 
-		if (resource instanceof CPUResource)
-		{
-			CPUResource cpu = (CPUResource)resource;
-			cpu.createThread(this);
-		}
-
 		synchronized (allThreads)
 		{
 			allThreads.add(this);
@@ -112,6 +106,14 @@ public abstract class SchedulableThread extends Thread implements Serializable
 		while (state == RunState.CREATED)
 		{
 			sleep();
+		}
+
+		// Log the creation here so that it is deterministic...
+
+		if (resource instanceof CPUResource)
+		{
+			CPUResource cpu = (CPUResource)resource;
+			cpu.createThread(this);
 		}
 	}
 
