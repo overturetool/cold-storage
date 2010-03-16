@@ -243,13 +243,16 @@ public abstract class SchedulableThread extends Thread implements Serializable
 				throw new ThreadDeath();
 
 			case SUSPEND:
-				if (Settings.usingDBGP)
+				if (ctxt != null)
 				{
-					ctxt.threadState.dbgp.stopped(ctxt, location);
-				}
-				else
-				{
-					DebuggerReader.stopped(ctxt, location);
+    				if (Settings.usingDBGP)
+    				{
+    					ctxt.threadState.dbgp.stopped(ctxt, location);
+    				}
+    				else
+    				{
+    					DebuggerReader.stopped(ctxt, location);
+    				}
 				}
 				break;
 		}
