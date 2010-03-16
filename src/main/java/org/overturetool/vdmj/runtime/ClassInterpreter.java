@@ -43,6 +43,7 @@ import org.overturetool.vdmj.messages.Console;
 import org.overturetool.vdmj.messages.RTLogger;
 import org.overturetool.vdmj.messages.VDMErrorsException;
 import org.overturetool.vdmj.pog.ProofObligationList;
+import org.overturetool.vdmj.scheduler.MainThread;
 import org.overturetool.vdmj.scheduler.SystemClock;
 import org.overturetool.vdmj.statements.Statement;
 import org.overturetool.vdmj.syntax.ExpressionReader;

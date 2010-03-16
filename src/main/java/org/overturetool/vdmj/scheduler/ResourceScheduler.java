@@ -27,7 +27,6 @@ import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.overturetool.vdmj.runtime.MainThread;
 import org.overturetool.vdmj.values.BUSValue;
 
 public class ResourceScheduler implements Serializable

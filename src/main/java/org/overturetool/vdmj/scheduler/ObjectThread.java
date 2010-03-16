@@ -99,13 +99,13 @@ public class ObjectThread extends SchedulableThread
 		}
 		catch (ValueException e)
 		{
-			breakOthers();
+			suspendOthers();
 			ResourceScheduler scheduler = resource.getScheduler();
 			scheduler.raise(new ContextException(e, ctxt.location));
 		}
 		catch (RuntimeException e)
 		{
-			breakOthers();
+			suspendOthers();
 			ResourceScheduler scheduler = resource.getScheduler();
 			scheduler.raise(e);
 		}

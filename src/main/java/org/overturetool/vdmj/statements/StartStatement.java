@@ -23,9 +23,7 @@
 
 package org.overturetool.vdmj.statements;
 
-import org.overturetool.vdmj.Settings;
 import org.overturetool.vdmj.expressions.Expression;
-import org.overturetool.vdmj.lex.Dialect;
 import org.overturetool.vdmj.lex.LexLocation;
 import org.overturetool.vdmj.pog.POContextStack;
 import org.overturetool.vdmj.pog.ProofObligationList;
@@ -105,18 +103,6 @@ public class StartStatement extends Statement
 	{
 		breakpoint.check(location, ctxt);
 
-		if (Settings.dialect == Dialect.VDM_RT)
-		{
-			return evalRT(ctxt);
-		}
-		else
-		{
-			return evalPP(ctxt);
-		}
-	}
-
-	private Value evalRT(Context ctxt)
-	{
 		try
 		{
 			Value value = objects.eval(ctxt);
@@ -130,7 +116,7 @@ public class StartStatement extends Statement
 					ObjectValue target = v.objectValue(ctxt);
 					OperationValue op = target.getThreadOperation(ctxt);
 
-					startRT(target, op, ctxt);
+					start(target, op, ctxt);
 				}
 			}
 			else
@@ -138,7 +124,7 @@ public class StartStatement extends Statement
 				ObjectValue target = value.objectValue(ctxt);
 				OperationValue op = target.getThreadOperation(ctxt);
 
-				startRT(target, op, ctxt);
+				start(target, op, ctxt);
 			}
 
 			return new VoidValue();
@@ -149,9 +135,7 @@ public class StartStatement extends Statement
 		}
 	}
 
-	// Note that RT does not use VDMThreads at all...
-
-	private void startRT(ObjectValue target, OperationValue op, Context ctxt)
+	private void start(ObjectValue target, OperationValue op, Context ctxt)
 		throws ValueException
 	{
 		if (op.body instanceof PeriodicStatement)
@@ -175,34 +159,6 @@ public class StartStatement extends Statement
 		else
 		{
 			new ObjectThread(location, target, ctxt).start();
-		}
-	}
-
-	private Value evalPP(Context ctxt)
-	{
-		try
-		{
-			Value value = objects.eval(ctxt);
-
-			if (value.isType(SetValue.class))
-			{
-				ValueSet set = value.setValue(ctxt);
-
-				for (Value v: set)
-				{
-					new ObjectThread(location, v.objectValue(ctxt), ctxt).start();
-				}
-			}
-			else
-			{
-				new ObjectThread(location, value.objectValue(ctxt), ctxt).start();
-			}
-
-			return new VoidValue();
-		}
-		catch (ValueException e)
-		{
-			return abort(e);
 		}
 	}
 

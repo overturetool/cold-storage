@@ -131,7 +131,7 @@ public class TraceStatement extends Statement
 			else
 			{
 				// Initialize completely between every run...
-    			interpreter.init(null);
+    			interpreter.traceInit();
     			List<Object> result = interpreter.runtrace(tracedef.classDefinition, test);
 
     			writer.println("Test " + n + " = " + clean);

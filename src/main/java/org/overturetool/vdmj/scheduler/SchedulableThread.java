@@ -139,6 +139,10 @@ public abstract class SchedulableThread extends Thread implements Serializable
 		{
 			duration(Properties.rt_duration_default);
 		}
+		else
+		{
+			SystemClock.advance(Properties.rt_duration_default);
+		}
 
 		if (++steps >= timeslice)
 		{
@@ -233,13 +237,16 @@ public abstract class SchedulableThread extends Thread implements Serializable
 			case TERMINATE:
 				throw new ThreadDeath();
 
+			case SUSPEND:
+				break;
+
 			case BREAK:
 				System.out.println("Break " + this);
 				break;
 		}
 	}
 
-	public void breakOthers()
+	public void suspendOthers()
 	{
 		synchronized (allThreads)
 		{
@@ -247,7 +254,7 @@ public abstract class SchedulableThread extends Thread implements Serializable
     		{
     			if (!th.equals(this))
     			{
-    				th.setSignal(Signal.BREAK);
+    				th.setSignal(Signal.SUSPEND);
     			}
     		}
 		}

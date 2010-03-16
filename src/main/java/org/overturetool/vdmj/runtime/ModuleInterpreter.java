@@ -39,6 +39,7 @@ import org.overturetool.vdmj.messages.VDMErrorsException;
 import org.overturetool.vdmj.modules.Module;
 import org.overturetool.vdmj.modules.ModuleList;
 import org.overturetool.vdmj.pog.ProofObligationList;
+import org.overturetool.vdmj.scheduler.MainThread;
 import org.overturetool.vdmj.statements.Statement;
 import org.overturetool.vdmj.syntax.ExpressionReader;
 import org.overturetool.vdmj.traces.CallSequence;
@@ -46,6 +47,7 @@ import org.overturetool.vdmj.traces.TraceVariableStatement;
 import org.overturetool.vdmj.traces.Verdict;
 import org.overturetool.vdmj.typechecker.Environment;
 import org.overturetool.vdmj.typechecker.ModuleEnvironment;
+import org.overturetool.vdmj.values.CPUValue;
 import org.overturetool.vdmj.values.Value;
 
 /**
@@ -163,13 +165,14 @@ public class ModuleInterpreter extends Interpreter
 	public void init(DBGPReader dbgp)
 	{
 		scheduler.init();
-		initialContext = modules.initialize(scheduler, dbgp);
+		CPUValue.init(scheduler);
+		initialContext = modules.initialize(dbgp);
 	}
 
 	@Override
 	public void traceInit()
 	{
-		initialContext = modules.initialize(scheduler, null);
+		initialContext = modules.initialize(null);
 	}
 
 	@Override

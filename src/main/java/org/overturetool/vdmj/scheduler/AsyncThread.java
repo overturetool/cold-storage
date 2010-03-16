@@ -180,13 +180,13 @@ public class AsyncThread extends SchedulableThread
 		}
 		catch (ValueException e)
 		{
-			breakOthers();
+			suspendOthers();
 			ResourceScheduler scheduler = resource.getScheduler();
 			scheduler.raise(new ContextException(e, operation.name.location));
 		}
 		catch (RuntimeException e)
 		{
-			breakOthers();
+			suspendOthers();
 			ResourceScheduler scheduler = resource.getScheduler();
 			scheduler.raise(e);
 		}

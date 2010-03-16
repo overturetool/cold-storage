@@ -23,6 +23,8 @@
 
 package org.overturetool.vdmj.scheduler;
 
+import org.overturetool.vdmj.Settings;
+import org.overturetool.vdmj.lex.Dialect;
 import org.overturetool.vdmj.values.TransactionValue;
 
 public class SystemClock
@@ -42,6 +44,10 @@ public class SystemClock
 	public static synchronized void advance(long duration)
 	{
 		wallTime += duration;
-		TransactionValue.commitAll();
+
+		if (Settings.dialect == Dialect.VDM_RT)
+		{
+			TransactionValue.commitAll();
+		}
 	}
 }

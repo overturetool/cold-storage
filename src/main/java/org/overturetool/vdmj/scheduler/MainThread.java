@@ -21,11 +21,11 @@
  *
  ******************************************************************************/
 
-package org.overturetool.vdmj.runtime;
+package org.overturetool.vdmj.scheduler;
 
 import org.overturetool.vdmj.expressions.Expression;
-import org.overturetool.vdmj.scheduler.CPUResource;
-import org.overturetool.vdmj.scheduler.SchedulableThread;
+import org.overturetool.vdmj.runtime.Context;
+import org.overturetool.vdmj.runtime.ContextException;
 import org.overturetool.vdmj.values.TransactionValue;
 import org.overturetool.vdmj.values.UndefinedValue;
 import org.overturetool.vdmj.values.Value;
