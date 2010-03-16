@@ -24,6 +24,7 @@
 package org.overturetool.vdmj.scheduler;
 
 import org.overturetool.vdmj.Settings;
+import org.overturetool.vdmj.commands.DebuggerReader;
 import org.overturetool.vdmj.debug.DBGPReader;
 import org.overturetool.vdmj.debug.DBGPReason;
 import org.overturetool.vdmj.lex.LexLocation;
@@ -69,39 +70,24 @@ public class AsyncThread extends SchedulableThread
 		this.request = request;
 	}
 
-	public AsyncThread(
-		ObjectValue self, OperationValue operation, ValueList args, boolean stepping)
-	{
-		super(
-			self.getCPU().resource,
-			self,
-			operation.getPriority(),
-			false, 0);
-
-		setName("Async Thread " + getId());
-
-		this.self = self;
-		this.operation = operation;
-		this.args = args;
-		this.cpu = self.getCPU();
-		this.breakAtStart = stepping;
-		this.request = null;
-	}
-
 	@Override
 	protected void body()
 	{
+		RootContext global = ClassInterpreter.getInstance().initialContext;
+		LexLocation from = self.type.classdef.location;
+		Context ctxt = new ObjectContext(from, "async", global, self);
+
 		if (Settings.usingDBGP)
 		{
-			runDBGP();
+			runDBGP(ctxt);
 		}
 		else
 		{
-			runCmd();
+			runCmd(ctxt);
 		}
 	}
 
-	private void runDBGP()
+	private void runDBGP(Context ctxt)
 	{
 		DBGPReader reader = null;
 
@@ -111,9 +97,6 @@ public class AsyncThread extends SchedulableThread
 
     		try
     		{
-        		RootContext global = ClassInterpreter.getInstance().initialContext;
-        		LexLocation from = self.type.classdef.location;
-        		Context ctxt = new ObjectContext(from, "async", global, self);
     			reader = ctxt.threadState.dbgp.newThread(cpu);
     			ctxt.setThreadState(reader, cpu);
 
@@ -140,12 +123,14 @@ public class AsyncThread extends SchedulableThread
 		}
 		catch (ContextException e)
 		{
+			suspendOthers();
 			reader.complete(DBGPReason.EXCEPTION, e);
 		}
 		catch (Exception e)
 		{
 			if (reader != null)
 			{
+				suspendOthers();
 				reader.complete(DBGPReason.EXCEPTION, null);
 			}
 		}
@@ -155,13 +140,10 @@ public class AsyncThread extends SchedulableThread
 		}
 	}
 
-	private void runCmd()
+	private void runCmd(Context ctxt)
 	{
 		try
 		{
-    		RootContext global = ClassInterpreter.getInstance().initialContext;
-    		LexLocation from = self.type.classdef.location;
-    		Context ctxt = new ObjectContext(from, "async", global, self);
     		ctxt.setThreadState(null, cpu);
 
 			if (breakAtStart)
@@ -181,14 +163,17 @@ public class AsyncThread extends SchedulableThread
 		catch (ValueException e)
 		{
 			suspendOthers();
-			ResourceScheduler scheduler = resource.getScheduler();
-			scheduler.raise(new ContextException(e, operation.name.location));
+			DebuggerReader.stopped(e.ctxt, operation.name.location);
+		}
+		catch (ContextException e)
+		{
+			suspendOthers();
+			DebuggerReader.stopped(e.ctxt, operation.name.location);
 		}
 		catch (RuntimeException e)
 		{
 			suspendOthers();
-			ResourceScheduler scheduler = resource.getScheduler();
-			scheduler.raise(e);
+			DebuggerReader.stopped(null, operation.name.location);
 		}
 		finally
 		{

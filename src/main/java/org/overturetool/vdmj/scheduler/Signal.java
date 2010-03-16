@@ -25,5 +25,5 @@ package org.overturetool.vdmj.scheduler;
 
 public enum Signal
 {
-	BREAK, SUSPEND, TERMINATE
+	SUSPEND, TERMINATE
 }

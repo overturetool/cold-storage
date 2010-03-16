@@ -157,13 +157,13 @@ public class BUSResource extends Resource
 
 	public void process(SchedulableThread th)
 	{
-		cq.join();		// Never leaves
+		cq.join(null, null);		// Never leaves
 
 		while (true)
 		{
     		while (messages.isEmpty())
     		{
-    			cq.block();
+    			cq.block(null, null);
     		}
 
     		MessagePacket m = messages.remove(0);
@@ -178,7 +178,7 @@ public class BUSResource extends Resource
     			if (!mr.bus.isVirtual())
     			{
     				long pause = getDataDuration(mr.getSize());
-    				th.duration(pause);
+    				th.duration(pause, null, null);
     			}
 
     			AsyncThread thread = new AsyncThread(mr);
@@ -191,7 +191,7 @@ public class BUSResource extends Resource
     			if (!mr.bus.isVirtual())
     			{
     				long pause = getDataDuration(mr.getSize());
-    				th.duration(pause);
+    				th.duration(pause, null, null);
     			}
 
     			mr.replyTo.set(mr);

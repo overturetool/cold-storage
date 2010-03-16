@@ -27,6 +27,9 @@ import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.overturetool.vdmj.lex.LexLocation;
+import org.overturetool.vdmj.runtime.Context;
+
 public class ControlQueue implements Serializable
 {
     private static final long serialVersionUID = 1L;
@@ -41,7 +44,7 @@ public class ControlQueue implements Serializable
 		waiters.clear();
 	}
 
-	public void join()
+	public void join(Context ctxt, LexLocation location)
 	{
 		SchedulableThread th = (SchedulableThread)Thread.currentThread();
 
@@ -52,13 +55,13 @@ public class ControlQueue implements Serializable
 				waiters.add(th);
 			}
 
-			th.waiting();
+			th.waiting(ctxt, location);
 		}
 
 		joined = th;
 	}
 
-	public void block()
+	public void block(Context ctxt, LexLocation location)
 	{
 		if (stimmed)
 		{
@@ -66,7 +69,7 @@ public class ControlQueue implements Serializable
 		}
 		else
 		{
-			joined.waiting();
+			joined.waiting(ctxt, location);
 		}
 	}
 

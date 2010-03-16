@@ -27,21 +27,20 @@ import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.overturetool.vdmj.messages.Console;
 import org.overturetool.vdmj.values.BUSValue;
 
 public class ResourceScheduler implements Serializable
 {
     private static final long serialVersionUID = 1L;
-    
+
 	public String name = "scheduler";
 	private List<Resource> resources = new LinkedList<Resource>();
-	private MainThread mainThread = null;
 	private static boolean stopping = false;
 
 	public void init()
 	{
 		resources.clear();
-		mainThread = null;
 	}
 
 	public void reset()
@@ -71,7 +70,6 @@ public class ResourceScheduler implements Serializable
 
 	public void start(MainThread main)
 	{
-		mainThread = main;
 		BUSValue.start();	// Start BUS threads first...
 
 		boolean idle = true;
@@ -121,7 +119,8 @@ public class ResourceScheduler implements Serializable
     		{
     			if (resource.hasActive())
     			{
-    				raise(new RuntimeException("DEADLOCK detected"));
+   					Console.out.println("DEADLOCK detected");
+					SchedulableThread.signalAll(Signal.SUSPEND);
     				break;
     			}
     		}
@@ -143,11 +142,6 @@ public class ResourceScheduler implements Serializable
 		return sb.toString();
 	}
 
-	public void raise(RuntimeException exception)
-	{
-		mainThread.setException(exception);
-	}
-	
 	public static boolean isStopping()
 	{
 		return stopping;

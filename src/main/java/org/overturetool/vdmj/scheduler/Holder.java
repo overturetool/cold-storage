@@ -25,6 +25,9 @@ package org.overturetool.vdmj.scheduler;
 
 import java.io.Serializable;
 
+import org.overturetool.vdmj.lex.LexLocation;
+import org.overturetool.vdmj.runtime.Context;
+
 public class Holder<T> implements Serializable
 {
     private static final long serialVersionUID = 1L;
@@ -37,13 +40,13 @@ public class Holder<T> implements Serializable
 		cq.stim();
 	}
 
-	public T get()
+	public T get(Context ctxt, LexLocation location)
 	{
-		cq.join();
-		
+		cq.join(ctxt, location);
+
 		while (contents == null)
 		{
-			cq.block();
+			cq.block(ctxt, location);
 		}
 
 		T result = null;

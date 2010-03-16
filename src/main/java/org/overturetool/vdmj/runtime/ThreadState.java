@@ -31,7 +31,7 @@ import org.overturetool.vdmj.scheduler.SchedulableThread;
 import org.overturetool.vdmj.values.CPUValue;
 
 /**
- * A class to hold some runtime information for each VDM thread.
+ * A class to hold some runtime information for each thread.
  */
 
 public class ThreadState implements Serializable
@@ -41,14 +41,13 @@ public class ThreadState implements Serializable
 	public final DBGPReader dbgp;
 	public final CPUValue CPU;
 
-	private boolean atomic = false;		// don't reschedule
+	private boolean atomic = false;	// Don't reschedule
+	private long timestep;			// Current step being made (not wall time)
 
-	public InterruptAction action;
-	public LexLocation stepline;
+	public LexLocation stepline;	// Breakpoint stepping values
 	public RootContext nextctxt;
 	public Context outctxt;
 
-	private long timestep;		// Current step being made (not wall time)
 
 	public ThreadState(DBGPReader dbgp, CPUValue cpu)
 	{
@@ -60,7 +59,6 @@ public class ThreadState implements Serializable
 
 	public void init()
 	{
-		this.action = InterruptAction.RUNNING;
 		this.setTimestep(-1);
 		setBreaks(null, null, null);
 	}
@@ -88,7 +86,7 @@ public class ThreadState implements Serializable
 		return timestep;
 	}
 
-	public void reschedule()	// Called for RT & PP at every statement/expression
+	public void reschedule(Context ctxt, LexLocation location)
 	{
 		if (!atomic)
 		{
@@ -99,7 +97,7 @@ public class ThreadState implements Serializable
 			if (current instanceof SchedulableThread)
 			{
 				SchedulableThread s = (SchedulableThread)current;
-				s.step();
+				s.step(ctxt, location);
 			}
 		}
 	}

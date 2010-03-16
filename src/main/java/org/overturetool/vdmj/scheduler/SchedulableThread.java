@@ -28,8 +28,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.overturetool.vdmj.Settings;
+import org.overturetool.vdmj.commands.DebuggerReader;
 import org.overturetool.vdmj.config.Properties;
 import org.overturetool.vdmj.lex.Dialect;
+import org.overturetool.vdmj.lex.LexLocation;
+import org.overturetool.vdmj.runtime.Context;
 import org.overturetool.vdmj.values.ObjectValue;
 
 public abstract class SchedulableThread extends Thread implements Serializable
@@ -98,14 +101,14 @@ public abstract class SchedulableThread extends Thread implements Serializable
 		return "SchedulableThread-" + getId() + " (" + state + ")";
 	}
 
-	@Override
-    public synchronized void start()
+    @Override
+	public synchronized void start()
 	{
 		super.start();
 
 		while (state == RunState.CREATED)
 		{
-			sleep();
+			sleep(null, null);
 		}
 
 		// Log the creation here so that it is deterministic...
@@ -120,7 +123,7 @@ public abstract class SchedulableThread extends Thread implements Serializable
 	@Override
 	public void run()
 	{
-		reschedule();
+		reschedule(null, null);
 		body();
 		setState(RunState.COMPLETE);
 		resource.unregister(this);
@@ -133,11 +136,11 @@ public abstract class SchedulableThread extends Thread implements Serializable
 
 	abstract protected void body();
 
-	public void step()
+	public void step(Context ctxt, LexLocation location)
 	{
 		if (Settings.dialect == Dialect.VDM_RT)
 		{
-			duration(Properties.rt_duration_default);
+			duration(Properties.rt_duration_default, ctxt, location);
 		}
 		else
 		{
@@ -146,7 +149,7 @@ public abstract class SchedulableThread extends Thread implements Serializable
 
 		if (++steps >= timeslice)
 		{
-			reschedule();
+			reschedule(ctxt, location);
 			steps = 0;
 		}
 	}
@@ -162,26 +165,26 @@ public abstract class SchedulableThread extends Thread implements Serializable
 		notifyAll();
 	}
 
-	private synchronized void reschedule()
+	private synchronized void reschedule(Context ctxt, LexLocation location)
 	{
 		// Yield control but remain runnable - called by thread
-		waitUntilState(RunState.RUNNABLE, RunState.RUNNING);
+		waitUntilState(RunState.RUNNABLE, RunState.RUNNING, ctxt, location);
 	}
 
-	public synchronized void waiting()
+	public synchronized void waiting(Context ctxt, LexLocation location)
 	{
 		// Enter a waiting state - called by thread
-		waitUntilState(RunState.WAITING, RunState.RUNNING);
+		waitUntilState(RunState.WAITING, RunState.RUNNING, ctxt, location);
 	}
 
 	public synchronized void runslice(long slice)
 	{
 		// Run one time slice - called by Scheduler
 		timeslice = slice;
-		waitWhileState(RunState.RUNNING, RunState.RUNNING);
+		waitWhileState(RunState.RUNNING, RunState.RUNNING, null, null);
 	}
 
-	public synchronized void duration(long pause)
+	public synchronized void duration(long pause, Context ctxt, LexLocation location)
 	{
 		// Wait until pause has passed - called by thread
 		setTimestep(pause);
@@ -189,48 +192,50 @@ public abstract class SchedulableThread extends Thread implements Serializable
 
 		while (getTimestep() > 0)
 		{
-			waitUntilState(RunState.TIMESTEP, RunState.RUNNING);
+			waitUntilState(RunState.TIMESTEP, RunState.RUNNING, ctxt, location);
 			setTimestep(end - SystemClock.getWallTime());
 		}
 	}
 
-	private synchronized void waitWhileState(RunState newstate, RunState until)
+	private synchronized void waitWhileState(
+		RunState newstate, RunState until, Context ctxt, LexLocation location)
 	{
 		setState(newstate);
 
 		while (state == until)
 		{
-			sleep();
+			sleep(ctxt, location);
 		}
 	}
 
-	private synchronized void waitUntilState(RunState newstate, RunState until)
+	private synchronized void waitUntilState(
+		RunState newstate, RunState until, Context ctxt, LexLocation location)
 	{
 		setState(newstate);
 
 		while (state != until)
 		{
-			sleep();
+			sleep(ctxt, location);
 		}
 	}
 
-	private synchronized void sleep()
+	private synchronized void sleep(Context ctxt, LexLocation location)
 	{
 		while (true)
 		{
     		try
     		{
    				wait();
-    			return;
+ 				return;
     		}
     		catch (InterruptedException e)
     		{
-    			handleSignal(signal);
+    			handleSignal(signal, ctxt, location);
     		}
 		}
 	}
 
-	protected void handleSignal(Signal sig)
+	protected void handleSignal(Signal sig, Context ctxt, LexLocation location)
 	{
 		switch (sig)
 		{
@@ -238,10 +243,14 @@ public abstract class SchedulableThread extends Thread implements Serializable
 				throw new ThreadDeath();
 
 			case SUSPEND:
-				break;
-
-			case BREAK:
-				System.out.println("Break " + this);
+				if (Settings.usingDBGP)
+				{
+					ctxt.threadState.dbgp.stopped(ctxt, location);
+				}
+				else
+				{
+					DebuggerReader.stopped(ctxt, location);
+				}
 				break;
 		}
 	}

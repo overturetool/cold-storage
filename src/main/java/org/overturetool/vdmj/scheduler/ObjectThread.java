@@ -24,6 +24,7 @@
 package org.overturetool.vdmj.scheduler;
 
 import org.overturetool.vdmj.Settings;
+import org.overturetool.vdmj.commands.DebuggerReader;
 import org.overturetool.vdmj.debug.DBGPReader;
 import org.overturetool.vdmj.debug.DBGPReason;
 import org.overturetool.vdmj.lex.LexLocation;
@@ -100,14 +101,17 @@ public class ObjectThread extends SchedulableThread
 		catch (ValueException e)
 		{
 			suspendOthers();
-			ResourceScheduler scheduler = resource.getScheduler();
-			scheduler.raise(new ContextException(e, ctxt.location));
+			DebuggerReader.stopped(e.ctxt, operation.name.location);
+		}
+		catch (ContextException e)
+		{
+			suspendOthers();
+			DebuggerReader.stopped(e.ctxt, operation.name.location);
 		}
 		catch (RuntimeException e)
 		{
 			suspendOthers();
-			ResourceScheduler scheduler = resource.getScheduler();
-			scheduler.raise(e);
+			DebuggerReader.stopped(null, operation.name.location);
 		}
 		finally
 		{
@@ -137,12 +141,14 @@ public class ObjectThread extends SchedulableThread
 		}
 		catch (ContextException e)
 		{
+			suspendOthers();
 			reader.complete(DBGPReason.EXCEPTION, e);
 		}
 		catch (Exception e)
 		{
 			if (reader != null)
 			{
+				suspendOthers();
 				reader.complete(DBGPReason.EXCEPTION, null);
 			}
 		}

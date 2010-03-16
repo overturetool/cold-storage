@@ -411,7 +411,7 @@ public class OperationValue extends Value
 			return;		// Probably during initialization.
 		}
 
-		guardCQ.join();
+		guardCQ.join(ctxt, guard.location);
 
 		while (true)
 		{
@@ -443,7 +443,7 @@ public class OperationValue extends Value
 			}
 
 			debug("guard WAIT");
-			guardCQ.block();
+			guardCQ.block(ctxt, guard.location);
 			debug("guard wake");
 
 			synchronized (self.guardCQs)
@@ -515,7 +515,7 @@ public class OperationValue extends Value
         			bus, from, to, self, this, argValues, result, stepping);
 
         		bus.transmit(request);
-        		MessageResponse reply = result.get();
+        		MessageResponse reply = result.get(ctxt, name.location);
         		return reply.getValue();	// Can throw a returned exception
     		}
 		}

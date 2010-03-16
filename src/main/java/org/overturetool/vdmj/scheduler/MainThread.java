@@ -76,11 +76,6 @@ public class MainThread extends SchedulableThread
 		}
 	}
 
-	public void setException(RuntimeException exception)
-	{
-		this.exception = exception;
-	}
-
 	public Value getResult() throws ContextException
 	{
 		if (exception != null)

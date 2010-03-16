@@ -801,6 +801,11 @@ public class DBGPReader
 		while (line != null && process(line));
 	}
 
+	public void stopped(Context ctxt, LexLocation location)
+	{
+		stopped(ctxt, new Breakpoint(location));
+	}
+
 	public void stopped(Context ctxt, Breakpoint bp)
 	{
 		if (breaksSuspended)

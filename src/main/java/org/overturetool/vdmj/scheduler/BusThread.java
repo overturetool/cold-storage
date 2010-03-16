@@ -23,6 +23,9 @@
 
 package org.overturetool.vdmj.scheduler;
 
+import org.overturetool.vdmj.lex.LexLocation;
+import org.overturetool.vdmj.runtime.Context;
+
 public class BusThread extends SchedulableThread
 {
 	private static final long serialVersionUID = 1L;
@@ -41,15 +44,14 @@ public class BusThread extends SchedulableThread
 	}
 
 	@Override
-	protected void handleSignal(Signal sig)
+	protected void handleSignal(Signal sig, Context ctxt, LexLocation location)
 	{
 		switch (sig)
 		{
 			case TERMINATE:
 				throw new ThreadDeath();
 
-			case BREAK:
-				// Ignore
+			case SUSPEND:	// Ignore
 				break;
 		}
 	}

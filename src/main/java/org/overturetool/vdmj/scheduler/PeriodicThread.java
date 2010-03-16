@@ -26,6 +26,7 @@ package org.overturetool.vdmj.scheduler;
 import java.util.Random;
 
 import org.overturetool.vdmj.Settings;
+import org.overturetool.vdmj.commands.DebuggerReader;
 import org.overturetool.vdmj.debug.DBGPReader;
 import org.overturetool.vdmj.debug.DBGPReason;
 import org.overturetool.vdmj.lex.LexLocation;
@@ -84,6 +85,10 @@ public class PeriodicThread extends SchedulableThread
 	@Override
 	protected void body()
 	{
+		RootContext global = ClassInterpreter.getInstance().initialContext;
+		LexLocation from = object.type.classdef.location;
+		Context ctxt = new ObjectContext(from, "async", global, object);
+
 		if (first)
 		{
 			if (offset > 0 || jitter > 0)
@@ -91,12 +96,12 @@ public class PeriodicThread extends SchedulableThread
     			long noise = (jitter == 0) ? 0 :
     				Math.abs(new Random().nextLong() % (jitter + 1));
 
-    			waitUntil(offset + noise);
+    			waitUntil(offset + noise, ctxt, operation.name.location);
 			}
 		}
 		else
 		{
-			waitUntil(expected);
+			waitUntil(expected, ctxt, operation.name.location);
 		}
 
 		new PeriodicThread(
@@ -107,16 +112,16 @@ public class PeriodicThread extends SchedulableThread
 
 		if (Settings.usingDBGP)
 		{
-			runDBGP();
+			runDBGP(ctxt);
 		}
 		else
 		{
-			runCmd();
+			runCmd(ctxt);
 		}
 	}
 
 
-	private void runDBGP()
+	private void runDBGP(Context ctxt)
 	{
 		DBGPReader reader = null;
 
@@ -124,9 +129,6 @@ public class PeriodicThread extends SchedulableThread
 		{
     		try
     		{
-        		RootContext global = ClassInterpreter.getInstance().initialContext;
-        		LexLocation from = object.type.classdef.location;
-        		Context ctxt = new ObjectContext(from, "async", global, object);
     			reader = ctxt.threadState.dbgp.newThread(object.getCPU());
     			ctxt.setThreadState(reader, object.getCPU());
 
@@ -142,12 +144,14 @@ public class PeriodicThread extends SchedulableThread
 		}
 		catch (ContextException e)
 		{
+			suspendOthers();
 			reader.complete(DBGPReason.EXCEPTION, e);
 		}
 		catch (Exception e)
 		{
 			if (reader != null)
 			{
+				suspendOthers();
 				reader.complete(DBGPReason.EXCEPTION, null);
 			}
 		}
@@ -157,13 +161,10 @@ public class PeriodicThread extends SchedulableThread
 		}
 	}
 
-	private void runCmd()
+	private void runCmd(Context ctxt)
 	{
 		try
 		{
-    		RootContext global = ClassInterpreter.getInstance().initialContext;
-    		LexLocation from = object.type.classdef.location;
-    		Context ctxt = new ObjectContext(from, "async", global, object);
     		ctxt.setThreadState(null, object.getCPU());
 
     		operation.localEval(
@@ -172,14 +173,17 @@ public class PeriodicThread extends SchedulableThread
 		catch (ValueException e)
 		{
 			suspendOthers();
-			ResourceScheduler scheduler = resource.getScheduler();
-			scheduler.raise(new ContextException(e, operation.name.location));
+			DebuggerReader.stopped(e.ctxt, operation.name.location);
+		}
+		catch (ContextException e)
+		{
+			suspendOthers();
+			DebuggerReader.stopped(e.ctxt, operation.name.location);
 		}
 		catch (RuntimeException e)
 		{
 			suspendOthers();
-			ResourceScheduler scheduler = resource.getScheduler();
-			scheduler.raise(e);
+			DebuggerReader.stopped(null, operation.name.location);
 		}
 		finally
 		{
@@ -204,13 +208,13 @@ public class PeriodicThread extends SchedulableThread
 		return next;
 	}
 
-	private void waitUntil(long until)
+	private void waitUntil(long until, Context ctxt, LexLocation location)
 	{
 		long time = SystemClock.getWallTime();
 
 		if (until > time)
 		{
-			duration(until - time);
+			duration(until - time, ctxt, location);
 		}
 	}
 

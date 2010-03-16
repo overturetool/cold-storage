@@ -69,7 +69,7 @@ public class CyclesStatement extends Statement
 				ctxt.threadState.setTimestep(step);
 				Value rv = statement.eval(ctxt);
 				SchedulableThread me = (SchedulableThread)Thread.currentThread();
-				me.duration(step);
+				me.duration(step, ctxt, location);
 				ctxt.threadState.setTimestep(-1);
 				return rv;
 			}
