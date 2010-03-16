@@ -243,6 +243,7 @@ public abstract class SchedulableThread extends Thread implements Serializable
 				throw new ThreadDeath();
 
 			case SUSPEND:
+			case DEADLOCKED:
 				if (ctxt != null)
 				{
     				if (Settings.usingDBGP)
@@ -252,6 +253,11 @@ public abstract class SchedulableThread extends Thread implements Serializable
     				else
     				{
     					DebuggerReader.stopped(ctxt, location);
+    				}
+    				
+    				if (sig == Signal.DEADLOCKED)
+    				{
+    					throw new ThreadDeath();
     				}
 				}
 				break;

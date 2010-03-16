@@ -28,6 +28,7 @@ import org.overturetool.vdmj.commands.DebuggerReader;
 import org.overturetool.vdmj.debug.DBGPReader;
 import org.overturetool.vdmj.debug.DBGPReason;
 import org.overturetool.vdmj.lex.LexLocation;
+import org.overturetool.vdmj.messages.Console;
 import org.overturetool.vdmj.runtime.ClassInterpreter;
 import org.overturetool.vdmj.runtime.Context;
 import org.overturetool.vdmj.runtime.ContextException;
@@ -124,15 +125,13 @@ public class AsyncThread extends SchedulableThread
 		catch (ContextException e)
 		{
 			suspendOthers();
-			reader.complete(DBGPReason.EXCEPTION, e);
+			Console.out.println(e.getMessage());
+			reader.stopped(e.ctxt, e.location);
 		}
 		catch (Exception e)
 		{
-			if (reader != null)
-			{
-				suspendOthers();
-				reader.complete(DBGPReason.EXCEPTION, null);
-			}
+			Console.out.println(e.getMessage());
+			SchedulableThread.signalAll(Signal.SUSPEND);
 		}
 		finally
 		{
@@ -163,17 +162,19 @@ public class AsyncThread extends SchedulableThread
 		catch (ValueException e)
 		{
 			suspendOthers();
+			Console.out.println(e.getMessage());
 			DebuggerReader.stopped(e.ctxt, operation.name.location);
 		}
 		catch (ContextException e)
 		{
 			suspendOthers();
+			Console.out.println(e.getMessage());
 			DebuggerReader.stopped(e.ctxt, operation.name.location);
 		}
-		catch (RuntimeException e)
+		catch (Exception e)
 		{
 			suspendOthers();
-			DebuggerReader.stopped(null, operation.name.location);
+			Console.out.println(e.getMessage());
 		}
 		finally
 		{

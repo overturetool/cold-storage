@@ -328,12 +328,6 @@ abstract public class CommandReader
 		{
 			println("Syntax: " + e.getMessage());
 		}
-		catch (ContextException e)
-		{
-			println("Runtime: " + e.getMessage());
-			Breakpoint bp = new Breakpoint(e.location);
-			new DebuggerReader(interpreter, bp, e.ctxt).run();
-		}
 		catch (DebuggerException e)
 		{
 			println("Debug: " + e.getMessage());

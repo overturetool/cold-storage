@@ -119,8 +119,21 @@ public class ResourceScheduler implements Serializable
     		{
     			if (resource.hasActive())
     			{
-   					Console.out.println("DEADLOCK detected");
-					SchedulableThread.signalAll(Signal.SUSPEND);
+   					Console.err.println("DEADLOCK detected");
+					SchedulableThread.signalAll(Signal.DEADLOCKED);
+					
+					while (main.isAlive())
+					{
+						try
+                        {
+	                        Thread.sleep(500);
+                        }
+                        catch (InterruptedException e)
+                        {
+	                        // ?
+                        }
+					}
+					
     				break;
     			}
     		}

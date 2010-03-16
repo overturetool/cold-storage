@@ -23,7 +23,10 @@
 
 package org.overturetool.vdmj.scheduler;
 
+import org.overturetool.vdmj.Settings;
+import org.overturetool.vdmj.commands.DebuggerReader;
 import org.overturetool.vdmj.expressions.Expression;
+import org.overturetool.vdmj.messages.Console;
 import org.overturetool.vdmj.runtime.Context;
 import org.overturetool.vdmj.runtime.ContextException;
 import org.overturetool.vdmj.values.TransactionValue;
@@ -49,6 +52,7 @@ public class MainThread extends SchedulableThread
 
 		this.expression = expr;
 		this.ctxt = ctxt;
+		this.exception = null;
 
 		setName("MainThread-" + getId());
 	}
@@ -62,13 +66,57 @@ public class MainThread extends SchedulableThread
 	@Override
 	public void body()
 	{
+		if (Settings.usingDBGP)
+		{
+			runDBGP();
+		}
+		else
+		{
+			runCmd();
+		}
+	}
+		
+	private void runCmd()
+	{
 		try
 		{
 			result = expression.eval(ctxt);
 		}
+		catch (ContextException e)
+		{
+			exception = e;
+			suspendOthers();
+			Console.out.println(e.getMessage());
+			DebuggerReader.stopped(e.ctxt, expression.location);
+		}
 		catch (RuntimeException e)
 		{
 			exception = e;
+			suspendOthers();
+			Console.out.println(e.getMessage());
+		}
+		finally
+		{
+			TransactionValue.commitAll();
+		}
+	}
+	
+	private void runDBGP()
+	{
+		try
+		{
+			result = expression.eval(ctxt);
+		}
+		catch (ContextException e)
+		{
+			suspendOthers();
+			Console.out.println(e.getMessage());
+			ctxt.threadState.dbgp.stopped(e.ctxt, e.location);
+		}
+		catch (Exception e)
+		{
+			Console.out.println(e.getMessage());
+			SchedulableThread.signalAll(Signal.SUSPEND);
 		}
 		finally
 		{
@@ -80,9 +128,9 @@ public class MainThread extends SchedulableThread
 	{
 		if (exception != null)
 		{
-			throw exception;
+			throw exception;	// Only set for cmd line
 		}
-
+		
 		return result;
 	}
 }
