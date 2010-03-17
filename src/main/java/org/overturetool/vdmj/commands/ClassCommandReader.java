@@ -110,13 +110,6 @@ public class ClassCommandReader extends CommandReader
 	}
 
 	@Override
-	protected boolean doThreads(String line)
-	{
-		print(interpreter.scheduler.toString());
-		return true;
-	}
-
-	@Override
 	protected boolean doLog(String line)
 	{
 		if (Settings.dialect != Dialect.VDM_RT)
@@ -168,7 +161,6 @@ public class ClassCommandReader extends CommandReader
 	protected void doHelp(String line)
 	{
 		println("classes - list the loaded class names");
-		println("threads - list active threads");
 		println("default <class> - set the default class name");
 		println("create <id> := <exp> - create a named variable");
 

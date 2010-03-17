@@ -75,7 +75,7 @@ public class MainThread extends SchedulableThread
 			runCmd();
 		}
 	}
-		
+
 	private void runCmd()
 	{
 		try
@@ -86,21 +86,21 @@ public class MainThread extends SchedulableThread
 		{
 			exception = e;
 			suspendOthers();
-			Console.out.println(e.getMessage());
+			Console.err.println(e.getMessage());
 			DebuggerReader.stopped(e.ctxt, expression.location);
 		}
 		catch (RuntimeException e)
 		{
 			exception = e;
 			suspendOthers();
-			Console.out.println(e.getMessage());
+			Console.err.println(e.getMessage());
 		}
 		finally
 		{
 			TransactionValue.commitAll();
 		}
 	}
-	
+
 	private void runDBGP()
 	{
 		try
@@ -110,12 +110,12 @@ public class MainThread extends SchedulableThread
 		catch (ContextException e)
 		{
 			suspendOthers();
-			Console.out.println(e.getMessage());
+			Console.err.println(e.getMessage());
 			ctxt.threadState.dbgp.stopped(e.ctxt, e.location);
 		}
 		catch (Exception e)
 		{
-			Console.out.println(e.getMessage());
+			Console.err.println(e.getMessage());
 			SchedulableThread.signalAll(Signal.SUSPEND);
 		}
 		finally
@@ -130,7 +130,7 @@ public class MainThread extends SchedulableThread
 		{
 			throw exception;	// Only set for cmd line
 		}
-		
+
 		return result;
 	}
 }

@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Vector;
 
 import org.overturetool.vdmj.ExitStatus;
+import org.overturetool.vdmj.Settings;
 import org.overturetool.vdmj.lex.LexLocation;
 import org.overturetool.vdmj.messages.Console;
 import org.overturetool.vdmj.messages.InternalException;
@@ -58,7 +59,7 @@ public class DebuggerReader extends CommandReader
 	public DebuggerReader(
 		Interpreter interpreter, Breakpoint breakpoint, Context ctxt)
 	{
-		super(interpreter, "[thread " + ctxt.threadState.threadId + "]> ");
+		super(interpreter, "[" + Thread.currentThread() + "]> ");
 		this.breakpoint = breakpoint;
 		this.ctxt = ctxt;
 	}
@@ -343,7 +344,10 @@ public class DebuggerReader extends CommandReader
 
 	public static void stopped(Context ctxt, LexLocation location)
 	{
-		Breakpoint bp = new Breakpoint(location);
-		new DebuggerReader(Interpreter.getInstance(), bp, ctxt).run();
+		if (Settings.usingCmdLine)
+		{
+			Breakpoint bp = new Breakpoint(location);
+			new DebuggerReader(Interpreter.getInstance(), bp, ctxt).run();
+		}
 	}
 }

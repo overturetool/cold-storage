@@ -161,11 +161,13 @@ public class FCFSPolicy extends SchedulingPolicy
 	public String getStatus()
 	{
 		StringBuilder sb = new StringBuilder();
+		String sep = "";
 
 		for (SchedulableThread th: threads)
 		{
+			sb.append(sep);
 			sb.append(th);
-			sb.append("\n");
+			sep = "\n";
 		}
 
 		return sb.toString();

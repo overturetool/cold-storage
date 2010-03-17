@@ -102,19 +102,19 @@ public class ObjectThread extends SchedulableThread
 		catch (ValueException e)
 		{
 			suspendOthers();
-			Console.out.println(e.getMessage());
+			Console.err.println(e.getMessage());
 			DebuggerReader.stopped(e.ctxt, operation.name.location);
 		}
 		catch (ContextException e)
 		{
 			suspendOthers();
-			Console.out.println(e.getMessage());
+			Console.err.println(e.getMessage());
 			DebuggerReader.stopped(e.ctxt, operation.name.location);
 		}
 		catch (Exception e)
 		{
-			suspendOthers();
-			Console.out.println(e.getMessage());
+			Console.err.println(e.getMessage());
+			SchedulableThread.signalAll(Signal.SUSPEND);
 		}
 		finally
 		{
@@ -145,12 +145,12 @@ public class ObjectThread extends SchedulableThread
 		catch (ContextException e)
 		{
 			suspendOthers();
-			Console.out.println(e.getMessage());
+			Console.err.println(e.getMessage());
 			reader.stopped(e.ctxt, e.location);
 		}
 		catch (Exception e)
 		{
-			Console.out.println(e.getMessage());
+			Console.err.println(e.getMessage());
 			SchedulableThread.signalAll(Signal.SUSPEND);
 		}
 		finally
