@@ -27,17 +27,14 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 
-import org.overturetool.vdmj.Settings;
-import org.overturetool.vdmj.lex.Dialect;
 import org.overturetool.vdmj.lex.LexNameToken;
 import org.overturetool.vdmj.messages.InternalException;
 import org.overturetool.vdmj.runtime.Context;
 import org.overturetool.vdmj.runtime.ValueException;
-import org.overturetool.vdmj.scheduler.ControlQueue;
+import org.overturetool.vdmj.scheduler.Lock;
 import org.overturetool.vdmj.types.ClassType;
 import org.overturetool.vdmj.types.Type;
 import org.overturetool.vdmj.types.TypeList;
@@ -54,7 +51,7 @@ public class ObjectValue extends Value
 	public final ClassType type;
 	public final NameValuePairMap members;
 	public final List<ObjectValue> superobjects;
-	public final List<ControlQueue> guardCQs;
+	public final Lock guardLock = new Lock();
 
 	private CPUValue CPU;
 	private Object delegateObject = null;
@@ -67,15 +64,6 @@ public class ObjectValue extends Value
 		this.members = members;
 		this.superobjects = superobjects;
 		this.CPU = cpu;
-
-		if (Settings.dialect != Dialect.VDM_SL)
-		{
-			this.guardCQs = new LinkedList<ControlQueue>();
-		}
-		else
-		{
-			this.guardCQs = null;
-		}
 
 		setSelf(this);
 	}

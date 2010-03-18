@@ -49,7 +49,6 @@ import org.overturetool.vdmj.runtime.RootContext;
 import org.overturetool.vdmj.runtime.StateContext;
 import org.overturetool.vdmj.runtime.ValueException;
 import org.overturetool.vdmj.scheduler.AsyncThread;
-import org.overturetool.vdmj.scheduler.ControlQueue;
 import org.overturetool.vdmj.scheduler.Holder;
 import org.overturetool.vdmj.scheduler.MessageRequest;
 import org.overturetool.vdmj.scheduler.MessageResponse;
@@ -85,7 +84,6 @@ public class OperationValue extends Value
 	public boolean isAsync = false;
 
 	private Expression guard = null;
-	private ControlQueue guardCQ = new ControlQueue();
 
 	public int hashAct = 0; // Number of activations
 	public int hashFin = 0; // Number of finishes
@@ -411,7 +409,7 @@ public class OperationValue extends Value
 			return;		// Probably during initialization.
 		}
 
-		guardCQ.join(ctxt, guard.location);
+		self.guardLock.lock(ctxt, guard.location);
 
 		while (true)
 		{
@@ -434,38 +432,23 @@ public class OperationValue extends Value
     			}
 			}
 
-			// The guardCQs list is stimmed by the GuardValueListener
+			// The guardLock list is signalled by the GuardValueListener
 			// and by notifySelf when something changes.
 
-			synchronized (self.guardCQs)
-			{
-				self.guardCQs.add(guardCQ);
-			}
-
 			debug("guard WAIT");
-			guardCQ.block(ctxt, guard.location);
-			debug("guard wake");
-
-			synchronized (self.guardCQs)
-			{
-				self.guardCQs.remove(guardCQ);
-			}
+			self.guardLock.block(ctxt, guard.location);
+			debug("guard WAKE");
 		}
 
-		guardCQ.leave();
+		self.guardLock.unlock();
 	}
 
 	private void notifySelf()
 	{
-		if (self != null && self.guardCQs != null)
+		if (self != null)
 		{
-			synchronized (self.guardCQs)
-			{
-				for (ControlQueue cq: self.guardCQs)
-				{
-					cq.stim();
-				}
-			}
+			debug("Signal guard");
+			self.guardLock.signal();
 		}
 	}
 
@@ -661,7 +644,7 @@ public class OperationValue extends Value
 
 	private void debug(String string)
 	{
-//		System.err.println(String.format("%s %s %s",
+//		System.out.println(String.format("%s %s %s",
 //				Thread.currentThread(), name, string));
 	}
 

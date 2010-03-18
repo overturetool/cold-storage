@@ -27,7 +27,6 @@ import java.io.Serializable;
 
 import org.overturetool.vdmj.lex.LexLocation;
 import org.overturetool.vdmj.runtime.Context;
-import org.overturetool.vdmj.scheduler.ControlQueue;
 
 public class GuardValueListener implements ValueListener, Serializable
 {
@@ -41,9 +40,6 @@ public class GuardValueListener implements ValueListener, Serializable
 
 	public void changedValue(LexLocation location, Value value, Context ctxt)
 	{
-		for (ControlQueue cq: self.guardCQs)
-		{
-			cq.stim();
-		}
+		self.guardLock.signal();
 	}
 }

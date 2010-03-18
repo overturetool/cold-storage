@@ -177,6 +177,12 @@ public abstract class SchedulableThread extends Thread implements Serializable
 		waitUntilState(RunState.WAITING, RunState.RUNNING, ctxt, location);
 	}
 
+	public synchronized void locking(Context ctxt, LexLocation location)
+	{
+		// Enter a locking state - called by thread
+		waitUntilState(RunState.LOCKING, RunState.RUNNING, ctxt, location);
+	}
+
 	public synchronized void runslice(long slice)
 	{
 		// Run one time slice - called by Scheduler
@@ -254,7 +260,7 @@ public abstract class SchedulableThread extends Thread implements Serializable
     				{
     					DebuggerReader.stopped(ctxt, location);
     				}
-    				
+
     				if (sig == Signal.DEADLOCKED)
     				{
     					throw new ThreadDeath();
