@@ -37,6 +37,7 @@ public class ResourceScheduler implements Serializable
 	public String name = "scheduler";
 	private List<Resource> resources = new LinkedList<Resource>();
 	private static boolean stopping = false;
+	private static MainThread mainThread = null;
 
 	public void init()
 	{
@@ -70,6 +71,7 @@ public class ResourceScheduler implements Serializable
 
 	public void start(MainThread main)
 	{
+		mainThread = main;
 		BUSValue.start();	// Start BUS threads first...
 
 		boolean idle = true;
@@ -121,7 +123,7 @@ public class ResourceScheduler implements Serializable
     			{
    					Console.err.println("DEADLOCK detected");
 					SchedulableThread.signalAll(Signal.DEADLOCKED);
-					
+
 					while (main.isAlive())
 					{
 						try
@@ -133,7 +135,7 @@ public class ResourceScheduler implements Serializable
 	                        // ?
                         }
 					}
-					
+
     				break;
     			}
     		}
@@ -158,5 +160,10 @@ public class ResourceScheduler implements Serializable
 	public static boolean isStopping()
 	{
 		return stopping;
+	}
+
+	public static void setException(Exception e)
+	{
+		mainThread.setException(e);
 	}
 }

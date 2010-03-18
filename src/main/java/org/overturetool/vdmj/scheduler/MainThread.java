@@ -44,7 +44,7 @@ public class MainThread extends SchedulableThread
 	public final Expression expression;
 
 	private Value result = new UndefinedValue();
-	private RuntimeException exception = null;
+	private Exception exception = null;
 
 	public MainThread(Expression expr, Context ctxt)
 	{
@@ -84,16 +84,14 @@ public class MainThread extends SchedulableThread
 		}
 		catch (ContextException e)
 		{
-			exception = e;
+			setException(e);
 			suspendOthers();
-			Console.err.println(e.getMessage());
 			DebuggerReader.stopped(e.ctxt, expression.location);
 		}
-		catch (RuntimeException e)
+		catch (Exception e)
 		{
-			exception = e;
+			setException(e);
 			suspendOthers();
-			Console.err.println(e.getMessage());
 		}
 		finally
 		{
@@ -110,12 +108,12 @@ public class MainThread extends SchedulableThread
 		catch (ContextException e)
 		{
 			suspendOthers();
-			Console.err.println(e.getMessage());
+			setException(e);
 			ctxt.threadState.dbgp.stopped(e.ctxt, e.location);
 		}
 		catch (Exception e)
 		{
-			Console.err.println(e.getMessage());
+			setException(e);
 			SchedulableThread.signalAll(Signal.SUSPEND);
 		}
 		finally
@@ -124,13 +122,19 @@ public class MainThread extends SchedulableThread
 		}
 	}
 
-	public Value getResult() throws ContextException
+	public Value getResult() throws Exception
 	{
 		if (exception != null)
 		{
-			throw exception;	// Only set for cmd line
+			throw exception;
 		}
 
 		return result;
+	}
+
+	public void setException(Exception e)
+	{
+		Console.err.println(e.getMessage());
+		exception = e;
 	}
 }

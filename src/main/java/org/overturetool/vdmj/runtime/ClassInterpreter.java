@@ -188,7 +188,7 @@ public class ClassInterpreter extends Interpreter
 		return reader.readExpression();
 	}
 
-	private Value execute(Expression expr, DBGPReader dbgp)
+	private Value execute(Expression expr, DBGPReader dbgp) throws Exception
 	{
 		Context mainContext = new StateContext(
 			defaultClass.name.location, "global static scope");

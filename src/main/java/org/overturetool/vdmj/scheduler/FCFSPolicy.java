@@ -92,6 +92,12 @@ public class FCFSPolicy extends SchedulingPolicy
     					}
     					break;
 
+    				case WAITING:
+    				case LOCKING:
+    					// This causes many specifications to deadlock
+    					// minimumDuration = -1;	// Can't step yet
+    					break;
+
     				default:
     					break;
     			}
