@@ -62,6 +62,7 @@ public class CPUResource extends Resource
 	{
 		running = null;
 		policy.reset();
+		PeriodicThread.reset();
 	}
 
 	// Find the next thread to schedule and run one timeslice. The return
