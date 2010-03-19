@@ -134,7 +134,7 @@ public class CPUResource extends Resource
 	}
 
 	@Override
-	public long getTimestep()
+	public long getMinimumTimestep()
 	{
 		return policy.getTimestep();
 	}

@@ -52,6 +52,7 @@ public abstract class SchedulableThread extends Thread implements Serializable
 	private long steps;
 	private long timestep;
 	private long swapInBy;
+	private boolean inOuterTimeStep;
 
 	public SchedulableThread(
 		Resource resource, ObjectValue object, long priority,
@@ -62,10 +63,12 @@ public abstract class SchedulableThread extends Thread implements Serializable
 		this.periodic = periodic;
 		this.setSwapInBy(swapInBy);
 
-		steps = 0;
-		timeslice = 0;
 		state = RunState.CREATED;
 		signal = null;
+		timeslice = 0;
+		steps = 0;
+		timestep = -1;
+		inOuterTimeStep = false;
 
 		resource.register(this, priority);
 
@@ -328,11 +331,28 @@ public abstract class SchedulableThread extends Thread implements Serializable
 
 	public void setTimestep(long timestep)
 	{
-		this.timestep = timestep;
+		if (!inOuterTimeStep)
+		{
+			this.timestep = timestep;
+		}
+		else
+		{
+			this.timestep = 0;
+		}
 	}
 
 	public long getTimestep()
 	{
 		return timestep;
+	}
+
+	public void inOuterTimestep(boolean b)
+	{
+		inOuterTimeStep = b;
+	}
+
+	public boolean inOuterTimestep()
+	{
+		return inOuterTimeStep;
 	}
 }

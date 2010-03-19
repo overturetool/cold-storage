@@ -93,13 +93,14 @@ abstract public class Resource implements Serializable
 
 	// Find the next thread to schedule and run one timeslice. The return
 	// value indicates whether we ran something (true) or are idle (false,
-	// may be due to a time step, including a swap delay).
+	// which may be due to a time step).
 
 	abstract public boolean reschedule();
 
-	// Get the minimum duration for a timestep, or -1 if none.
+	// Get the minimum duration for a timestep, or -1 if can't, or Long.MAX_VALUE
+	// if no one is at a timestep.
 
-	abstract public long getTimestep();
+	abstract public long getMinimumTimestep();
 
 	public void advance()
 	{

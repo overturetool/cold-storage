@@ -42,7 +42,6 @@ public class ThreadState implements Serializable
 	public final CPUValue CPU;
 
 	private boolean atomic = false;	// Don't reschedule
-	private long timestep;			// Current step being made (not wall time)
 
 	public LexLocation stepline;	// Breakpoint stepping values
 	public RootContext nextctxt;
@@ -59,7 +58,6 @@ public class ThreadState implements Serializable
 
 	public void init()
 	{
-		this.setTimestep(-1);
 		setBreaks(null, null, null);
 	}
 
@@ -74,16 +72,6 @@ public class ThreadState implements Serializable
 	public synchronized boolean isStepping()
 	{
 		return stepline != null;
-	}
-
-	public synchronized void setTimestep(long timestep)
-	{
-		this.timestep = timestep;
-	}
-
-	public synchronized long getTimestep()
-	{
-		return timestep;
 	}
 
 	public void reschedule(Context ctxt, LexLocation location)

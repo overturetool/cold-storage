@@ -55,18 +55,19 @@ public class DurationStatement extends Statement
 	{
 		location.hit();
 
-		if (ctxt.threadState.getTimestep() >= 0)
+		SchedulableThread me = (SchedulableThread)Thread.currentThread();
+
+		if (me.inOuterTimestep())
 		{
 			// Already in a timed step, so ignore nesting
 			return statement.eval(ctxt);
 		}
 		else
 		{
-			ctxt.threadState.setTimestep(step);
+			me.inOuterTimestep(true);
 			Value rv = statement.eval(ctxt);
-			SchedulableThread me = (SchedulableThread)Thread.currentThread();
+			me.inOuterTimestep(false);
 			me.duration(step, ctxt, location);
-			ctxt.threadState.setTimestep(-1);
 			return rv;
 		}
 	}

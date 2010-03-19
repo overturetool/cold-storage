@@ -90,7 +90,7 @@ public class ResourceScheduler implements Serializable
 				}
 				else
 				{
-					long d = resource.getTimestep();
+					long d = resource.getMinimumTimestep();
 
 					if (d < minstep)
 					{

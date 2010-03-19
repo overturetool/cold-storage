@@ -70,7 +70,7 @@ public class FCFSPolicy extends SchedulingPolicy
 	public boolean reschedule()
 	{
 		bestThread = null;
-		minimumDuration = Long.MAX_VALUE;
+		minimumDuration = Long.MAX_VALUE;		// No one is stepping
 
 		synchronized (threads)
 		{
@@ -94,10 +94,6 @@ public class FCFSPolicy extends SchedulingPolicy
 
     				case WAITING:
     				case LOCKING:
-    					// This causes many specifications to deadlock
-    					// minimumDuration = -1;	// Can't step yet
-    					break;
-
     				default:
     					break;
     			}
