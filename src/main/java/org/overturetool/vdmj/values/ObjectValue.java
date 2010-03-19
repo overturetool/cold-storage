@@ -447,4 +447,9 @@ public class ObjectValue extends Value
 	{
 		return type.classdef.invokeDelegate(delegateObject, ctxt);
 	}
+
+	public static void init()
+	{
+		nextObjectReference = 0;
+	}
 }

@@ -159,6 +159,7 @@ public class ClassInterpreter extends Interpreter
 		SystemClock.init();
 		CPUValue.init(scheduler);
 		BUSValue.init();
+		ObjectValue.init();
 
 		logSwapIn();
 		initialContext = classes.initialize(dbgp);
