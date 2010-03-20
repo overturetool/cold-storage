@@ -42,6 +42,7 @@ public class ResourceScheduler implements Serializable
 	public void init()
 	{
 		resources.clear();
+		stopping = false;
 	}
 
 	public void reset()

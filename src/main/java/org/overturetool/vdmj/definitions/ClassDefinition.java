@@ -912,6 +912,11 @@ public class ClassDefinition extends Definition
 	public void staticInit(Context ctxt)
 	{
 		staticInit = false;				// Forced initialization
+		staticValuesInit = false;		// Forced initialization
+		
+		privateStaticValues = new NameValuePairMap();
+		publicStaticValues = new NameValuePairMap();
+
 		setStaticDefinitions(ctxt);
 	}
 
