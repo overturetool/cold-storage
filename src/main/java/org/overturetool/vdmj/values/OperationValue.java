@@ -26,6 +26,7 @@ package org.overturetool.vdmj.values;
 import java.util.Iterator;
 import java.util.ListIterator;
 import org.overturetool.vdmj.Settings;
+import org.overturetool.vdmj.config.Properties;
 import org.overturetool.vdmj.definitions.ClassDefinition;
 import org.overturetool.vdmj.definitions.ExplicitOperationDefinition;
 import org.overturetool.vdmj.definitions.ImplicitOperationDefinition;
@@ -584,7 +585,7 @@ public class OperationValue extends Value
 			trace("OpRequest");
 		}
 
-		debug("req");
+		debug("#req = " + hashReq);
 	}
 
 	private synchronized void act()
@@ -594,7 +595,7 @@ public class OperationValue extends Value
 		if (!ResourceScheduler.isStopping())
 		{
 			trace("OpActivate");
-			debug("act");
+			debug("#act = " + hashAct);
 		}
 	}
 
@@ -605,7 +606,7 @@ public class OperationValue extends Value
 		if (!ResourceScheduler.isStopping())
 		{
 			trace("OpCompleted");
-			debug("fin");
+			debug("#fin = " + hashFin);
 		}
 	}
 
@@ -644,8 +645,19 @@ public class OperationValue extends Value
 
 	private void debug(String string)
 	{
-//		System.out.println(String.format("%s %s %s",
-//				Thread.currentThread(), name, string));
+		if (Properties.diags_guards)
+		{
+			if (Settings.dialect == Dialect.VDM_PP)
+			{
+				System.err.println(String.format("%s %s %s",
+					Thread.currentThread(), name, string));
+			}
+			else
+			{
+				RTLogger.log(String.format("-- %s %s %s",
+					Thread.currentThread(), name, string));
+			}
+		}
 	}
 
 	public synchronized void setPriority(long priority)

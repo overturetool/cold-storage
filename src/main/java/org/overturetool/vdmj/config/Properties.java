@@ -41,6 +41,9 @@ public class Properties extends ConfigBase
 
 	/** Enable transactional variable updates. */
 	public static boolean rt_duration_transactions = false;
+	
+	/** Enable extra RT log diagnostics for guards etc. */
+	public static boolean diags_guards = false;
 
 	/**
 	 * When the class is initialized, we call the ConfigBase init method, which
