@@ -71,6 +71,11 @@ public class CPUValue extends ObjectValue
 		resource.deploy(obj);
 		deployed.add(obj);
 	}
+	
+	public void undeploy(ObjectValue obj)
+	{
+		deployed.remove(obj);
+	}
 
 	public void setPriority(String opname, long priority) throws Exception
 	{

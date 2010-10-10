@@ -249,14 +249,22 @@ public class ASTConverter
 		LexNameList supernames = convertInheritance(cls);
 		DefinitionList definitions = convertDefinitionsBlocks(cls.getClassBody());
 
-		if (cls.getSystemSpec())
-		{
-			return new SystemDefinition(classLexName, definitions);
-		}
-		else
-		{
+		
+			if (cls.getSystemSpec())
+			{
+				try
+				{
+					return new SystemDefinition(classLexName, definitions);
+				}
+				catch (Exception e)
+				{
+					throw new InternalException(11, "CPU or BUS creation failure");
+				}	
+			}
+			else
+			{
 			return new ClassDefinition(classLexName, supernames, definitions);
-		}
+			}			
 	}
 
 	private LexNameList convertInheritance(IOmlClass cls)

@@ -57,6 +57,7 @@ import org.overturetool.vdmj.types.TypeList;
 import org.overturetool.vdmj.util.Delegate;
 import org.overturetool.vdmj.values.CPUValue;
 import org.overturetool.vdmj.values.ClassInvariantListener;
+import org.overturetool.vdmj.values.NameValuePair;
 import org.overturetool.vdmj.values.NameValuePairList;
 import org.overturetool.vdmj.values.NameValuePairMap;
 import org.overturetool.vdmj.values.ObjectValue;
@@ -1250,6 +1251,7 @@ public class ClassDefinition extends Definition
 			}
 		}
 
+		
 		// Object instances have their own listeners
 		ValueListenerList listeners = null;
 		ClassInvariantListener listener = null;
@@ -1268,7 +1270,6 @@ public class ClassDefinition extends Definition
 			{
 				NameValuePairList nvpl =
 					d.getNamedValues(initCtxt).getUpdatable(listeners);
-
 				initCtxt.putList(nvpl);
 				members.putAll(nvpl);
 			}
@@ -1277,10 +1278,29 @@ public class ClassDefinition extends Definition
 		setPermissions(definitions, members, initCtxt);
 		setPermissions(superInheritedDefinitions, members, initCtxt);
 
+		ObjectValue creator = ctxt.outer == null ? null : ctxt.outer.getSelf();
+		
 		ObjectValue object =
 			new ObjectValue((ClassType)getType(), members, inherited,
-			ctxt.threadState.CPU);
+			ctxt.threadState.CPU, creator);
+		
+		
+		//objects which are instantiated directly in the instance variables
+		//are created before the constructor of the object is called, meaning
+		//that there is no self reference. This creates a chicken or egg dilemma,
+		//because the object instantiated in the instances variables need to know 
+		//their creator in order to set the correct CPU at deployment. 
+		//Therefore all objects in the object members are looped over again.
+		for(NameValuePair nvpl : members.asList())
+		{
+			Value initializedObject = nvpl.value.deref();
 
+			if(initializedObject instanceof ObjectValue)
+			{
+				((ObjectValue) initializedObject).setCreator(object);
+			}
+		}
+		
 		if (listener != null)
 		{
 			object.setListener(listener);

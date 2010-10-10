@@ -207,4 +207,20 @@ public class BUSValue extends ObjectValue
 	{
 		return cpumap[from.getNumber()][to.getNumber()];
 	}
+	
+	public static void connectObjToBUS(ObjectValue obj, BUSValue bus)
+	{
+		CPUValue newCpuRes = obj.getCPU(); 
+		BUSResource busRes = bus.resource;
+		 
+		//only map if cpu is not connected to the bus already. 
+		if(busRes.addCpu(newCpuRes))
+		{
+			for(CPUResource cpuRes : busRes.getCPUs())
+			{
+				cpumap[newCpuRes.getNumber()][cpuRes.getNumber()] =  bus;
+				cpumap[cpuRes.getNumber()][newCpuRes.getNumber()] =  bus;
+			}
+		}
+	}
 }

@@ -95,8 +95,10 @@ public class CPUClassDefinition extends ClassDefinition
     		ObjectContext octxt = (ObjectContext)ctxt;
     		CPUValue cpu = (CPUValue)octxt.self;
     		ObjectValue obj = (ObjectValue)octxt.lookup(varName("obj"));
-
-    		obj.setCPU(cpu);
+    		CPUValue oldcpu = obj.getCPU();
+    		
+    		obj.redeploy(cpu);
+    		oldcpu.undeploy(obj); 	//object will no longer be deployed on the old cpu
     		cpu.deploy(obj);
 
   			return new VoidValue();

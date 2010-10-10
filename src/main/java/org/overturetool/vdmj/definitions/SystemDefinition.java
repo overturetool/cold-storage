@@ -27,14 +27,20 @@ import java.util.HashMap;
 
 import org.overturetool.vdmj.debug.DBGPReader;
 import org.overturetool.vdmj.expressions.UndefinedExpression;
+import org.overturetool.vdmj.lex.Dialect;
+import org.overturetool.vdmj.lex.LexException;
+import org.overturetool.vdmj.lex.LexLocation;
 import org.overturetool.vdmj.lex.LexNameList;
 import org.overturetool.vdmj.lex.LexNameToken;
+import org.overturetool.vdmj.lex.LexTokenReader;
 import org.overturetool.vdmj.messages.RTLogger;
 import org.overturetool.vdmj.runtime.Context;
 import org.overturetool.vdmj.runtime.ContextException;
 import org.overturetool.vdmj.runtime.StateContext;
 import org.overturetool.vdmj.runtime.ValueException;
 import org.overturetool.vdmj.scheduler.ResourceScheduler;
+import org.overturetool.vdmj.syntax.DefinitionReader;
+import org.overturetool.vdmj.syntax.ParserException;
 import org.overturetool.vdmj.typechecker.Environment;
 import org.overturetool.vdmj.types.ClassType;
 import org.overturetool.vdmj.types.Type;
@@ -46,8 +52,10 @@ import org.overturetool.vdmj.values.ObjectValue;
 import org.overturetool.vdmj.values.QuoteValue;
 import org.overturetool.vdmj.values.RealValue;
 import org.overturetool.vdmj.values.UpdatableValue;
+import org.overturetool.vdmj.values.Value;
 import org.overturetool.vdmj.values.ValueList;
 import org.overturetool.vdmj.values.ValueSet;
+import org.overturetool.vdmj.values.VoidValue;
 
 public class SystemDefinition extends ClassDefinition
 {
@@ -55,11 +63,29 @@ public class SystemDefinition extends ClassDefinition
 
 	private static Context systemContext = null;
 
-	public SystemDefinition(LexNameToken className, DefinitionList members)
+	public SystemDefinition(LexNameToken className, DefinitionList members) throws ParserException, LexException
 	{
-		super(className, new LexNameList(), members);
+		super(className, new LexNameList(), operationDefs(className.name ,members));
 	}
+	
+	private static String defs =
+		"operations " +
+		"public static connectToBus: ? * BUS ==> () " +
+		"	connectToBus(obj, bus) == is not yet specified; " +
+		"public static disconnectFromBus: ? * ? * bool ==> () " +
+		"	disconnectFromBus(obj, bus, idle) == is not yet specified;";
 
+
+	private static DefinitionList operationDefs(String className ,DefinitionList members)
+	throws ParserException, LexException
+	{
+		LexTokenReader ltr = new LexTokenReader(defs, Dialect.VDM_PP);
+		DefinitionReader dr = new DefinitionReader(ltr); 
+		dr.setCurrentModule(className);
+		members.addAll(dr.readDefinitions());
+		return members;
+	}
+	
 	@Override
 	public void implicitDefinitions(Environment publicClasses)
 	{
@@ -86,6 +112,11 @@ public class SystemDefinition extends ClassDefinition
 			{
 				ExplicitOperationDefinition edef = (ExplicitOperationDefinition)d;
 
+				if(edef.name.name.equals("connectToBus") || edef.name.name.equals("disconnectFromBus"))
+				{
+					continue;
+				}
+				
 				if (!edef.name.name.equals(name.name) ||
 					!edef.parameterPatterns.isEmpty())
 				{
@@ -243,5 +274,23 @@ public class SystemDefinition extends ClassDefinition
 	{
 		abort(4135, "Cannot instantiate system class " + name, ctxt);
 		return null;
+	}
+	
+	public static Value connectToBus(Context ctxt)
+	{
+		try
+		{
+    		ObjectValue obj = (ObjectValue)ctxt.lookup(new LexNameToken("Sys", "obj", new LexLocation()));
+    		UpdatableValue updtVal = (UpdatableValue)ctxt.lookup(new LexNameToken("BUS", "bus", new LexLocation()));
+    		BUSValue bus = (BUSValue) updtVal.deref();
+    		
+    		BUSValue.connectObjToBUS(obj, bus);
+
+  			return new VoidValue();
+		}
+		catch (Exception e)
+		{
+			throw new ContextException(9999, "Cannot connect to CPU", ctxt.location, ctxt); //TODO error code?
+		}
 	}
 }

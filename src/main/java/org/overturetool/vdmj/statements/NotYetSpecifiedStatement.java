@@ -23,12 +23,15 @@
 
 package org.overturetool.vdmj.statements;
 
+
 import org.overturetool.vdmj.Settings;
 import org.overturetool.vdmj.definitions.CPUClassDefinition;
 import org.overturetool.vdmj.definitions.ClassDefinition;
+import org.overturetool.vdmj.definitions.SystemDefinition;
 import org.overturetool.vdmj.lex.Dialect;
 import org.overturetool.vdmj.lex.LexLocation;
 import org.overturetool.vdmj.modules.Module;
+import org.overturetool.vdmj.runtime.ClassContext;
 import org.overturetool.vdmj.runtime.ClassInterpreter;
 import org.overturetool.vdmj.runtime.Context;
 import org.overturetool.vdmj.runtime.Interpreter;
@@ -127,6 +130,18 @@ public class NotYetSpecifiedStatement extends Statement
     		{
     			return CPUClassDefinition.setPriority(ctxt);
     		}
+		} 
+		else if(ctxt instanceof ClassContext)
+		{
+			//check for system class
+			ClassContext clsCtxt = (ClassContext)ctxt;
+			if(clsCtxt.classdef instanceof SystemDefinition)
+			{
+				if(ctxt.title.equals("connectToBus(obj, bus)"))
+				{
+					return SystemDefinition.connectToBus(ctxt);
+				}
+			}
 		}
 
 		return abort(4041, "'is not yet specified' statement reached", ctxt);

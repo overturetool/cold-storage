@@ -59,6 +59,10 @@ public class ObjectValue extends Value
 	private transient CPUValue CPU;
 	private Object delegateObject = null;
 
+	private Vector<ObjectValue> children;
+	private ObjectValue parent;
+	
+	
 	public ObjectValue(ClassType type,
 		NameValuePairMap members, List<ObjectValue> superobjects, CPUValue cpu)
 	{
@@ -68,9 +72,21 @@ public class ObjectValue extends Value
 		this.superobjects = superobjects;
 		this.CPU = cpu;
 		this.guardLock = new Lock();
-
+		this.children = new Vector<ObjectValue>();
+		
 		setSelf(this);
 	}
+	
+	public ObjectValue(ClassType type,
+			NameValuePairMap members, List<ObjectValue> superobjects, CPUValue cpu, ObjectValue creator)
+		{
+			this(type, members, superobjects, cpu);
+
+			if(creator != null)
+			{
+				setCreator(creator);
+			}
+		}
 
 	private static synchronized int getReference()
 	{
@@ -477,5 +493,77 @@ public class ObjectValue extends Value
 	{
 		invlistener = listener;
 		listener.invopvalue.setSelf(this);
+	}
+
+	public synchronized void setCreator(ObjectValue creator)
+	{
+		parent = creator; 
+		//establish transitive reference
+		creator.addChild(this);
+	}
+	
+	public synchronized void addChild(ObjectValue referenced)
+	{
+		children.add(referenced); 
+	}
+	
+	public synchronized void detachChild(ObjectValue reference)
+	{
+		children.remove(reference); 
+	}
+	
+	/** 
+	* Recursively updates all  transitive references with the new CPU, 
+    * but without removing the parent - child relation, unlike the
+    * deploy method.
+    * 
+    * @param the target CPU of the redeploy
+    * */
+	public synchronized void updateCPUandChildrenCPUs(CPUValue cpu)
+	{
+		if(cpu != CPU)
+		{
+			for (ObjectValue obj: superobjects)
+			{
+				obj.updateCPUandChildrenCPUs(cpu);
+			}
+			this.setCPU(cpu);
+		}
+		
+		//update all object we have created our self.
+		for(ObjectValue objVal : children)
+		{
+			objVal.updateCPUandChildrenCPUs(cpu);
+		}
+	}
+	
+	/**
+	* Will redeploy the object and all object transitive referenced by this  
+	* to the supplied cpu.
+	* 
+	* Redeploy means that the transitive reference to and from our creator
+	* is no longer needed, and will be removed.
+	* This only applies to this object, as it 
+	* is on the top of the hierarchy, all children will be updated with the 
+	* <tt>updateCPUandChildrenCPUs</tt> method which recursively updates all 
+	* transitive references with the new CPU, but without removing the parent
+	* - child relation.
+	* 
+	* @param the target CPU of the redeploy
+	*/
+	public synchronized void redeploy(CPUValue cpu)
+	{
+		this.updateCPUandChildrenCPUs(cpu);
+		
+		//if we are moving to a new CPU, we are no longer a part of the transitive
+		//references from our creator, so let us remove our self. This will prevent 
+		// us from being updated if our creator is migrating in the 
+		// future.
+		if(parent != null)
+		{
+			parent.detachChild(this);
+			//creator no longer needed, as we already detached our self.
+			parent = null; 
+		}
 	}
 }

@@ -27,6 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.overturetool.vdmj.messages.RTLogger;
+import org.overturetool.vdmj.values.CPUValue;
 
 public class BUSResource extends Resource
 {
@@ -267,5 +268,21 @@ public class BUSResource extends Resource
 	public int getNumber()
 	{
 		return busNumber;
+	}
+	
+	public boolean addCpu(CPUValue newCpu)
+	{
+		if(!cpus.contains(newCpu.resource))
+		{
+			cpus.add(newCpu.resource);
+			return true;
+		}
+
+		return false;
+	}
+	
+	public List<CPUResource> getCPUs()
+	{
+		return cpus;	
 	}
 }
