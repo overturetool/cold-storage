@@ -1284,23 +1284,6 @@ public class ClassDefinition extends Definition
 			new ObjectValue((ClassType)getType(), members, inherited,
 			ctxt.threadState.CPU, creator);
 		
-		
-		//objects which are instantiated directly in the instance variables
-		//are created before the constructor of the object is called, meaning
-		//that there is no self reference. This creates a chicken or egg dilemma,
-		//because the object instantiated in the instances variables need to know 
-		//their creator in order to set the correct CPU at deployment. 
-		//Therefore all objects in the object members are looped over again.
-		for(NameValuePair nvpl : members.asList())
-		{
-			Value initializedObject = nvpl.value.deref();
-
-			if(initializedObject instanceof ObjectValue)
-			{
-				((ObjectValue) initializedObject).setCreator(object);
-			}
-		}
-		
 		if (listener != null)
 		{
 			object.setListener(listener);

@@ -36,19 +36,17 @@ public class MessageRequest extends MessagePacket
 	public final DBGPReader dbgp;
 	public final boolean breakAtStart;
 	public final ValueList args;
-	public final Holder<MessageResponse> replyTo;
 
 	public MessageRequest(
 		DBGPReader dbgp, BUSValue bus, CPUValue from, CPUValue to,
 		ObjectValue target,	OperationValue operation,
 		ValueList args, Holder<MessageResponse> replyTo, boolean breakAtStart)
 	{
-		super(bus, from, to, target, operation);
+		super(bus, from, to, target, operation, replyTo);
 
 		this.dbgp = dbgp;
 		this.breakAtStart = breakAtStart;
 		this.args = args;
-		this.replyTo = replyTo;
 	}
 
 	public int getSize()

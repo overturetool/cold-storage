@@ -42,9 +42,10 @@ public abstract class MessagePacket implements Serializable
 	public final CPUValue to;
 	public final ObjectValue target;
 	public final OperationValue operation;
+	public final Holder<MessageResponse> replyTo;
 
 	public MessagePacket(BUSValue bus, CPUValue from, CPUValue to,
-		ObjectValue target, OperationValue operation)
+		ObjectValue target, OperationValue operation,  Holder<MessageResponse> replyTo)
 	{
 		this.msgId = getNextId();
 		this.thread = BasicSchedulableThread.getThread(Thread.currentThread());
@@ -53,6 +54,7 @@ public abstract class MessagePacket implements Serializable
 		this.to = to;
 		this.target = target;
 		this.operation = operation;
+		this.replyTo = replyTo;
 	}
 
 	public MessagePacket()
@@ -64,6 +66,7 @@ public abstract class MessagePacket implements Serializable
 		this.to = null;
 		this.target = null;
 		this.operation = null;
+		this.replyTo = null;
 	}
 
 	private static synchronized long getNextId()

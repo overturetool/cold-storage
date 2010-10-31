@@ -51,7 +51,7 @@ public class ObjectValue extends Value
 	public final int objectReference;
 	public final ClassType type;
 	public final NameValuePairMap members;
-	public final List<ObjectValue> superobjects;
+	public final  List<ObjectValue> superobjects;
 
 	public ClassInvariantListener invlistener = null;
 
@@ -59,9 +59,8 @@ public class ObjectValue extends Value
 	private transient CPUValue CPU;
 	private Object delegateObject = null;
 
-	private Vector<ObjectValue> children;
-	private ObjectValue parent;
-	
+	private transient Vector<ObjectValue> children;
+	private transient ObjectValue parent;
 	
 	public ObjectValue(ClassType type,
 		NameValuePairMap members, List<ObjectValue> superobjects, CPUValue cpu)
@@ -108,7 +107,11 @@ public class ObjectValue extends Value
  			{
  				FunctionValue fv = (FunctionValue)deref;
  				fv.setSelf(self);
- 			}
+ 			} 
+ 			else if(deref instanceof ObjectValue)
+			{
+				((ObjectValue)deref).setCreator(self);
+			}			
  		}
 
 		for (ObjectValue obj: superobjects)
@@ -117,6 +120,7 @@ public class ObjectValue extends Value
 		}
 	}
 
+	
 	@Override
 	public ObjectValue objectValue(Context ctxt)
 	{
@@ -452,6 +456,7 @@ public class ObjectValue extends Value
 		in.defaultReadObject();
 		CPU = CPUValue.vCPU;
 		guardLock = new Lock();
+		children = new Vector<ObjectValue>();
     }
 
 	public synchronized void setCPU(CPUValue cpu)
@@ -519,13 +524,13 @@ public class ObjectValue extends Value
     * 
     * @param the target CPU of the redeploy
     * */
-	public synchronized void updateCPUandChildrenCPUs(CPUValue cpu)
+	public synchronized void updateCPUandChildCPUs(CPUValue cpu)
 	{
 		if(cpu != CPU)
 		{
 			for (ObjectValue obj: superobjects)
 			{
-				obj.updateCPUandChildrenCPUs(cpu);
+				obj.updateCPUandChildCPUs(cpu);
 			}
 			this.setCPU(cpu);
 		}
@@ -533,7 +538,7 @@ public class ObjectValue extends Value
 		//update all object we have created our self.
 		for(ObjectValue objVal : children)
 		{
-			objVal.updateCPUandChildrenCPUs(cpu);
+			objVal.updateCPUandChildCPUs(cpu);
 		}
 	}
 	
@@ -553,16 +558,16 @@ public class ObjectValue extends Value
 	*/
 	public synchronized void redeploy(CPUValue cpu)
 	{
-		this.updateCPUandChildrenCPUs(cpu);
+		this.updateCPUandChildCPUs(cpu);
 		
 		//if we are moving to a new CPU, we are no longer a part of the transitive
-		//references from our creator, so let us remove our self. This will prevent 
+		//references from our creator, so let us remove ourself. This will prevent 
 		// us from being updated if our creator is migrating in the 
 		// future.
 		if(parent != null)
 		{
 			parent.detachChild(this);
-			//creator no longer needed, as we already detached our self.
+			//creator no longer needed, as we already detached ourself.
 			parent = null; 
 		}
 	}

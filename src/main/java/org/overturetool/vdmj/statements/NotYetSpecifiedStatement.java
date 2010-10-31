@@ -141,6 +141,14 @@ public class NotYetSpecifiedStatement extends Statement
 				{
 					return SystemDefinition.connectToBus(ctxt);
 				}
+				else if(ctxt.title.equals("disconnectFromBus(obj, bus)"))
+				{
+					return SystemDefinition.disconnectFromBus(ctxt);
+				}
+				else if(ctxt.title.equals("migrate(obj, cpu)"))
+				{
+					return SystemDefinition.migrate(ctxt);
+				}
 			}
 		}
 

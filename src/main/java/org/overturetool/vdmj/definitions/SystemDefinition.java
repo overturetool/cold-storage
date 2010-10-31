@@ -34,8 +34,10 @@ import org.overturetool.vdmj.lex.LexNameList;
 import org.overturetool.vdmj.lex.LexNameToken;
 import org.overturetool.vdmj.lex.LexTokenReader;
 import org.overturetool.vdmj.messages.RTLogger;
+import org.overturetool.vdmj.runtime.ClassContext;
 import org.overturetool.vdmj.runtime.Context;
 import org.overturetool.vdmj.runtime.ContextException;
+import org.overturetool.vdmj.runtime.ObjectContext;
 import org.overturetool.vdmj.runtime.StateContext;
 import org.overturetool.vdmj.runtime.ValueException;
 import org.overturetool.vdmj.scheduler.ResourceScheduler;
@@ -48,6 +50,7 @@ import org.overturetool.vdmj.types.UndefinedType;
 import org.overturetool.vdmj.types.UnresolvedType;
 import org.overturetool.vdmj.values.BUSValue;
 import org.overturetool.vdmj.values.CPUValue;
+import org.overturetool.vdmj.values.NaturalValue;
 import org.overturetool.vdmj.values.ObjectValue;
 import org.overturetool.vdmj.values.QuoteValue;
 import org.overturetool.vdmj.values.RealValue;
@@ -63,17 +66,24 @@ public class SystemDefinition extends ClassDefinition
 
 	private static Context systemContext = null;
 
+	private static String systemClassName = "undefined";
+	
 	public SystemDefinition(LexNameToken className, DefinitionList members) throws ParserException, LexException
 	{
 		super(className, new LexNameList(), operationDefs(className.name ,members));
+		systemClassName = className.name;
 	}
 	
 	private static String defs =
 		"operations " +
-		"public static connectToBus: ? * BUS ==> () " +
+		"public static connectToBus: ? * ? ==> () " +
 		"	connectToBus(obj, bus) == is not yet specified; " +
-		"public static disconnectFromBus: ? * ? * bool ==> () " +
-		"	disconnectFromBus(obj, bus, idle) == is not yet specified;";
+		"public static disconnectFromBus: ? * ? ==> () " +
+		"	disconnectFromBus(obj, bus) == is not yet specified; " +
+		"public static disconnectFromBus: ? * BUS * bool ==> () " +
+		"	disconnectFromBus(obj, bus, idle) == is not yet specified; " +
+		"public static migrate: ? * ?  ==> () " +
+		"	migrate(obj, cpu) == is not yet specified;";
 
 
 	private static DefinitionList operationDefs(String className ,DefinitionList members)
@@ -112,7 +122,7 @@ public class SystemDefinition extends ClassDefinition
 			{
 				ExplicitOperationDefinition edef = (ExplicitOperationDefinition)d;
 
-				if(edef.name.name.equals("connectToBus") || edef.name.name.equals("disconnectFromBus"))
+				if(edef.name.name.equals("connectToBus") || edef.name.name.equals("disconnectFromBus") || edef.name.name.equals("migrate"))
 				{
 					continue;
 				}
@@ -280,9 +290,8 @@ public class SystemDefinition extends ClassDefinition
 	{
 		try
 		{
-    		ObjectValue obj = (ObjectValue)ctxt.lookup(new LexNameToken("Sys", "obj", new LexLocation()));
-    		UpdatableValue updtVal = (UpdatableValue)ctxt.lookup(new LexNameToken("BUS", "bus", new LexLocation()));
-    		BUSValue bus = (BUSValue) updtVal.deref();
+    		ObjectValue obj = (ObjectValue)ctxt.lookup(new LexNameToken(systemClassName, "obj", new LexLocation()));
+    		BUSValue bus  = (BUSValue)ctxt.check(new LexNameToken(systemClassName, "bus", new LexLocation()));;
     		
     		BUSValue.connectObjToBUS(obj, bus);
 
@@ -292,5 +301,39 @@ public class SystemDefinition extends ClassDefinition
 		{
 			throw new ContextException(9999, "Cannot connect to CPU", ctxt.location, ctxt); //TODO error code?
 		}
+	}
+	
+	public static Value disconnectFromBus(Context ctxt)
+	{
+		ObjectValue obj = (ObjectValue)ctxt.lookup(new LexNameToken(systemClassName, "obj", new LexLocation()));
+		BUSValue bus  = (BUSValue)ctxt.check(new LexNameToken(systemClassName, "bus", new LexLocation()));;
+		BUSValue.disconnectObjFromBUS(obj, bus);
+
+		return new VoidValue();
+	}
+	
+	public static Value migrate(Context ctxt)
+	{
+		ObjectValue obj = (ObjectValue)ctxt.lookup(new LexNameToken(systemClassName, "obj", new LexLocation()));
+		CPUValue cpuSource = obj.getCPU();
+		CPUValue cpuTarget = (CPUValue)ctxt.check(new LexNameToken(systemClassName, "cpu", new LexLocation()));;
+    		
+		//ensure bus connection
+		BUSValue bus = BUSValue.lookupBUS(cpuSource, cpuTarget);
+		if (bus == null)
+		{
+			throw new ContextException(4140, "No BUS between CPUs " + cpuSource.getName() + " and " + cpuTarget.getName(), ctxt.location, ctxt);
+		}
+		
+		//relocate object to CPU
+		obj.redeploy(cpuTarget);
+		cpuSource.undeploy(obj); 	//object will no longer be deployed on the old cpu
+		cpuTarget.deploy(obj);
+		
+		//redirect if possible
+		
+		
+		
+		return new VoidValue();
 	}
 }

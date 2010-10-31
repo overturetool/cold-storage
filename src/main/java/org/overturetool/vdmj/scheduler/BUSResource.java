@@ -23,11 +23,16 @@
 
 package org.overturetool.vdmj.scheduler;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.overturetool.vdmj.messages.RTLogger;
+import org.overturetool.vdmj.runtime.ExitException;
 import org.overturetool.vdmj.values.CPUValue;
+import org.overturetool.vdmj.values.QuoteValue;
 
 public class BUSResource extends Resource
 {
@@ -36,11 +41,13 @@ public class BUSResource extends Resource
 	private static BUSResource vBUS = null;
 
 	private final int busNumber;
-	private final ControlQueue cq;
+	private transient final ControlQueue cq;
 	private final double speed;
 	private final List<CPUResource> cpus;
 	private final List<MessagePacket> messages;
-
+	private transient final HashMap<Long,MessagePacket> currentlyProcessing;
+	private final List<Long> discardResponse;
+	
 	private ISchedulableThread busThread = null;
 
 	public BUSResource(boolean isVirtual,
@@ -53,9 +60,10 @@ public class BUSResource extends Resource
 		this.speed = speed;
 		this.cpus = cpus;
 		this.messages = new LinkedList<MessagePacket>();
-
+		this.currentlyProcessing = new HashMap<Long, MessagePacket>();
+		this.discardResponse = new ArrayList<Long>();
 		busThread = null;
-
+		
 		if (isVirtual)
 		{
 			vBUS = this;
@@ -187,7 +195,6 @@ public class BUSResource extends Resource
     		{
     			cq.block(null, null);
     		}
-
     		MessagePacket m = messages.remove(0);
 
     		RTLogger.log(
@@ -203,6 +210,7 @@ public class BUSResource extends Resource
     				th.duration(pause, null, null);
     			}
 
+    			currentlyProcessing.put(m.msgId, m);
     			AsyncThread thread = new AsyncThread(mr);
     			thread.start();
     		}
@@ -215,8 +223,20 @@ public class BUSResource extends Resource
     				long pause = getDataDuration(mr.getSize());
     				th.duration(pause, null, null);
     			}
-
-    			mr.replyTo.set(mr);
+    			
+    			//response cannot be used as there is no connection.
+    			if(discardResponse.contains(mr.originalId))
+    			{
+					ExitException ee = new ExitException(new QuoteValue("MessageLost"), null, null);
+					messages.add(new MessageResponse(ee, mr));
+					discardResponse.remove(mr.originalId);
+    			}
+    			else
+    			{
+	    			mr.replyTo.set(mr);
+    			}
+    			
+    			currentlyProcessing.remove(mr.originalId);
     		}
 
     		RTLogger.log(
@@ -270,19 +290,88 @@ public class BUSResource extends Resource
 		return busNumber;
 	}
 	
-	public boolean addCpu(CPUValue newCpu)
+	public boolean addCPU(CPUValue newCPU)
 	{
-		if(!cpus.contains(newCpu.resource))
+		if(!cpus.contains(newCPU.resource))
 		{
-			cpus.add(newCpu.resource);
+			cpus.add(newCPU.resource);
 			return true;
 		}
 
 		return false;
 	}
 	
+	public void removeCPU(CPUValue cpu)
+	{
+		if(cpus.contains(cpu.resource))
+		{
+			cpus.remove(cpu.resource);
+		}
+	}
+	
 	public List<CPUResource> getCPUs()
 	{
 		return cpus;	
+	}
+	
+	public boolean isConnectedTo(CPUValue cpu)
+	{
+		return cpus.contains(cpu.resource);
+	}
+	
+	public void RemoveMessages(CPUValue cpu)
+	{
+		if(messages.isEmpty())
+		{
+			return;
+		}
+		
+		//look through message in the queue
+		LinkedList<MessagePacket> msgToRemove = new LinkedList<MessagePacket>();
+		LinkedList<MessagePacket> errorMsg = new LinkedList<MessagePacket>();
+		MessagePacket m;
+		for(int i=0; i < messages.size() ; i++)
+		{			
+			m = messages.get(i);
+
+			if(m.to.equals(cpu) || m.from.equals(cpu))
+			{
+					if(m.replyTo != null)
+					{
+						//sync call, somebody is waiting
+						ExitException ee = new ExitException(new QuoteValue("MessageLost"), null, null);
+						//add error message 
+						errorMsg.add(new MessageResponse(ee, m));
+					} 
+
+					//drop msg on bu
+					msgToRemove.add(m);
+			}
+		}
+		
+		//we won't kill remote threads processing a remote call, so 
+		//look through current async processing, to determine which responses needs to be ignored. 
+		if(!currentlyProcessing.isEmpty())
+		{
+			MessagePacket mp;
+			Iterator<MessagePacket> itr = currentlyProcessing.values().iterator();	
+			while(itr.hasNext())
+			{
+				mp = itr.next();
+				
+				//both processing occurring on the disconnected CPU and 
+				//on others CPUs on behalf of the disconnect CPU will
+				//not be able to deliver the result.
+				if(mp.from.equals(cpu) || mp.to.equals(cpu))
+				{
+					discardResponse.add(mp.msgId);
+				}
+			}
+		}
+		
+		//loops completed, now alter list.
+		messages.removeAll(msgToRemove);
+		messages.addAll(errorMsg);
+		cq.stim();
 	}
 }

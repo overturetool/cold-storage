@@ -210,17 +210,46 @@ public class BUSValue extends ObjectValue
 	
 	public static void connectObjToBUS(ObjectValue obj, BUSValue bus)
 	{
-		CPUValue newCpuRes = obj.getCPU(); 
+		CPUValue newCpu = obj.getCPU(); 
 		BUSResource busRes = bus.resource;
 		 
+		//vCPU is always connected
+		if(newCpu == CPUValue.vCPU)  return;
+		
 		//only map if cpu is not connected to the bus already. 
-		if(busRes.addCpu(newCpuRes))
+		if(busRes.addCPU(newCpu))
 		{
 			for(CPUResource cpuRes : busRes.getCPUs())
 			{
-				cpumap[newCpuRes.getNumber()][cpuRes.getNumber()] =  bus;
-				cpumap[cpuRes.getNumber()][newCpuRes.getNumber()] =  bus;
+				//don't map to self
+				if(cpuRes == newCpu.resource) continue;
+				
+				cpumap[newCpu.getNumber()][cpuRes.getNumber()] =  bus;
+				cpumap[cpuRes.getNumber()][newCpu.getNumber()] =  bus;
 			}
 		}
+	}
+	
+	public static void disconnectObjFromBUS(ObjectValue obj, BUSValue bus)
+	{
+		CPUValue removeCpu = obj.getCPU(); 
+		BUSResource busRes = bus.resource;
+		
+		//vCPU is always connected
+		if(removeCpu == CPUValue.vCPU)  return;
+		
+		if(busRes.isConnectedTo(removeCpu))
+		{
+			busRes.removeCPU(removeCpu);
+			
+			for(CPUResource cpuRes : busRes.getCPUs())
+			{
+				cpumap[removeCpu.getNumber()][cpuRes.getNumber()] =  null;
+				cpumap[cpuRes.getNumber()][removeCpu.getNumber()] =  null;
+			}
+			
+			busRes.RemoveMessages(removeCpu);
+		}
+		
 	}
 }

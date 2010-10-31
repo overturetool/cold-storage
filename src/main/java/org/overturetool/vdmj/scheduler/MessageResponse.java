@@ -23,6 +23,7 @@
 
 package org.overturetool.vdmj.scheduler;
 
+import org.overturetool.vdmj.runtime.ExitException;
 import org.overturetool.vdmj.runtime.ValueException;
 import org.overturetool.vdmj.values.Value;
 
@@ -31,18 +32,18 @@ public class MessageResponse extends MessagePacket
 	private static final long serialVersionUID = 1L;
 	public final Value result;
 	public final ValueException exception;
-	public final Holder<MessageResponse> replyTo;
+	public final ExitException exitException;
 	public final ISchedulableThread caller;
 	public final long originalId;
 
 	public MessageResponse(Value result, MessageRequest request)
 	{
 		super(request.bus, request.to, request.from,	// NB to->from
-			request.target, request.operation);
+			request.target, request.operation, request.replyTo);
 
 		this.result = result;
 		this.exception = null;
-		this.replyTo = request.replyTo;
+		this.exitException = null;	
 		this.caller = request.thread;
 		this.originalId = request.msgId;
 	}
@@ -50,13 +51,35 @@ public class MessageResponse extends MessagePacket
 	public MessageResponse(ValueException exception, MessageRequest request)
 	{
 		super(request.bus, request.to, request.from,	// NB to->from
-			request.target, request.operation);
+			request.target, request.operation, request.replyTo);
 
 		this.result = null;
 		this.exception = exception;
-		this.replyTo = request.replyTo;
+		this.exitException = null;	
 		this.caller = request.thread;
 		this.originalId = request.msgId;
+	}
+
+	public MessageResponse(ExitException exception, MessagePacket message) {
+		super(message.bus, message.to, message.from,	// NB to->from
+				message.target, message.operation, message.replyTo);
+
+			this.result = null;
+			this.exception = null;
+			this.exitException = exception;	
+			this.caller = message.thread;
+			this.originalId = message.msgId;
+	}
+	
+	public MessageResponse(ExitException exception, MessageResponse response) {
+		super(response.bus, response.to, response.from,	// NB to->from
+				response.target, response.operation, response.replyTo);
+
+			this.result = null;
+			this.exception = null;
+			this.exitException = exception;	
+			this.caller = response.thread;
+			this.originalId = response.originalId;
 	}
 
 	public Value getValue() throws ValueException
@@ -65,6 +88,10 @@ public class MessageResponse extends MessagePacket
 		{
 			throw exception;
 		}
+		else if (exitException != null)
+		{
+			throw exitException;
+		}
 
 		return result;
 	}
@@ -72,12 +99,38 @@ public class MessageResponse extends MessagePacket
 	@Override
 	public String toString()
 	{
-		return result == null ? exception.getMessage() : result.toString();
+		String str;
+		if(result != null) 
+		{
+			str = result.toString();
+		}
+		else if(exception != null)
+		{
+			str = exception.getMessage();
+		} else
+		{
+			str = exitException.getMessage();
+		}
+		
+		return str; 
 	}
 
 	public int getSize()
 	{
-		return result == null ?
-			exception.toString().length() : result.toString().length();
+		int size;
+			
+		if(result != null) 
+		{
+			size = result.toString().length();
+		}
+		else if(exception != null)
+		{
+			size = exception.toString().length();
+		} else
+		{
+			size = exitException.toString().length();
+		}
+		
+		return size;
 	}
 }
