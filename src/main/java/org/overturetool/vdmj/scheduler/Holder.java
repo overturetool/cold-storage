@@ -37,7 +37,7 @@ public class Holder<T> implements Serializable
 	public synchronized void set(T object)
 	{
 		contents = object;
-		cq.stim();
+		cq.stim(); 
 	}
 
 	public T get(Context ctxt, LexLocation location)

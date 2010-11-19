@@ -57,7 +57,6 @@ import org.overturetool.vdmj.types.TypeList;
 import org.overturetool.vdmj.util.Delegate;
 import org.overturetool.vdmj.values.CPUValue;
 import org.overturetool.vdmj.values.ClassInvariantListener;
-import org.overturetool.vdmj.values.NameValuePair;
 import org.overturetool.vdmj.values.NameValuePairList;
 import org.overturetool.vdmj.values.NameValuePairMap;
 import org.overturetool.vdmj.values.ObjectValue;

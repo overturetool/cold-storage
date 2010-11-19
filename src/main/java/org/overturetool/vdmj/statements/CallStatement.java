@@ -23,9 +23,12 @@
 
 package org.overturetool.vdmj.statements;
 
+import org.overturetool.vdmj.Settings;
+import org.overturetool.vdmj.definitions.BUSClassDefinition;
 import org.overturetool.vdmj.definitions.Definition;
 import org.overturetool.vdmj.expressions.Expression;
 import org.overturetool.vdmj.expressions.ExpressionList;
+import org.overturetool.vdmj.lex.Dialect;
 import org.overturetool.vdmj.lex.LexNameToken;
 import org.overturetool.vdmj.pog.POContextStack;
 import org.overturetool.vdmj.pog.ProofObligationList;
@@ -34,6 +37,7 @@ import org.overturetool.vdmj.runtime.ValueException;
 import org.overturetool.vdmj.typechecker.Environment;
 import org.overturetool.vdmj.typechecker.NameScope;
 import org.overturetool.vdmj.typechecker.TypeComparator;
+import org.overturetool.vdmj.types.ClassType;
 import org.overturetool.vdmj.types.FunctionType;
 import org.overturetool.vdmj.types.OperationType;
 import org.overturetool.vdmj.types.Type;
@@ -110,8 +114,50 @@ public class CallStatement extends Statement
     		{
     			name.setTypeQualifier(optype.parameters);
     		}
-
+    		
     		checkArgTypes(optype.parameters, atypes);
+    		
+    		if(Settings.dialect == Dialect.VDM_RT & opdef.getName().equals("connectToBus") )
+    		{
+    			if (!atypes.get(0).isType(ClassType.class))
+    			{
+    				args.get(0).report(9999, "First argument to connectToBus must be an object");
+    			}
+    			
+    			if(atypes.get(1).isType(ClassType.class))
+    			{
+    				ClassType ct =  (ClassType) atypes.get(1);
+        			if (!(ct.classdef instanceof BUSClassDefinition))
+        			{
+        				args.get(1).report(9999, "Second argument to connectToBus must be a BUS");
+        			}
+    			} 
+    			else
+    			{
+    				args.get(1).report(9999, "Second argument to connectToBus must be a BUS");
+    			}	
+    		}
+    		else if(Settings.dialect == Dialect.VDM_RT & opdef.getName().equals("disconnectFromBus") )
+    		{
+    			if (!atypes.get(0).isType(ClassType.class))
+    			{
+    				args.get(0).report(9999, "First argument to disconnectFromBus must be an object");
+    			}
+    			
+    			if(atypes.get(1).isType(ClassType.class))
+    			{
+    				ClassType ct =  (ClassType) atypes.get(1);
+        			if (!(ct.classdef instanceof BUSClassDefinition))
+        			{
+        				args.get(1).report(9999, "Second argument to disconnectFromBus must be a BUS");
+        			}
+    			} 
+    			else
+    			{
+    				args.get(1).report(9999, "Second argument to disconnectFromBus must be a BUS");
+    			}	
+    		}
+    		
     		return optype.result;
 		}
 		else if (type.isFunction())

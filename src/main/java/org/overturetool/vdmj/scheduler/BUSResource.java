@@ -227,7 +227,7 @@ public class BUSResource extends Resource
     			//response cannot be used as there is no connection.
     			if(discardResponse.contains(mr.originalId))
     			{
-					ExitException ee = new ExitException(new QuoteValue("MessageLost"), null, null);
+					ExitException ee = new ExitException(new QuoteValue("ResponseLost"), null, null);
 					messages.add(new MessageResponse(ee, mr));
 					discardResponse.remove(mr.originalId);
     			}
@@ -290,6 +290,11 @@ public class BUSResource extends Resource
 		return busNumber;
 	}
 	
+	public double getSpeed()
+	{
+		return speed;		
+	}
+	
 	public boolean addCPU(CPUValue newCPU)
 	{
 		if(!cpus.contains(newCPU.resource))
@@ -336,16 +341,26 @@ public class BUSResource extends Resource
 
 			if(m.to.equals(cpu) || m.from.equals(cpu))
 			{
-					if(m.replyTo != null)
+				if(m.replyTo != null)
+				{
+					//sync call, somebody is waiting
+					ExitException ee; 
+					
+					if (m instanceof MessageResponse)
 					{
-						//sync call, somebody is waiting
-						ExitException ee = new ExitException(new QuoteValue("MessageLost"), null, null);
-						//add error message 
-						errorMsg.add(new MessageResponse(ee, m));
-					} 
+						ee = new ExitException(new QuoteValue("ResponseLost"), null, null);
+						
+					} else
+					{
+						ee =  new ExitException(new QuoteValue("MessageLost"), null, null);;
+					}  
+					
+					//add error message 
+					errorMsg.add(new MessageResponse(ee, m));
+				} 
 
-					//drop msg on bu
-					msgToRemove.add(m);
+				//drop msg on bus
+				msgToRemove.add(m);
 			}
 		}
 		

@@ -34,10 +34,8 @@ import org.overturetool.vdmj.lex.LexNameList;
 import org.overturetool.vdmj.lex.LexNameToken;
 import org.overturetool.vdmj.lex.LexTokenReader;
 import org.overturetool.vdmj.messages.RTLogger;
-import org.overturetool.vdmj.runtime.ClassContext;
 import org.overturetool.vdmj.runtime.Context;
 import org.overturetool.vdmj.runtime.ContextException;
-import org.overturetool.vdmj.runtime.ObjectContext;
 import org.overturetool.vdmj.runtime.StateContext;
 import org.overturetool.vdmj.runtime.ValueException;
 import org.overturetool.vdmj.scheduler.ResourceScheduler;
@@ -50,7 +48,6 @@ import org.overturetool.vdmj.types.UndefinedType;
 import org.overturetool.vdmj.types.UnresolvedType;
 import org.overturetool.vdmj.values.BUSValue;
 import org.overturetool.vdmj.values.CPUValue;
-import org.overturetool.vdmj.values.NaturalValue;
 import org.overturetool.vdmj.values.ObjectValue;
 import org.overturetool.vdmj.values.QuoteValue;
 import org.overturetool.vdmj.values.RealValue;
@@ -66,7 +63,7 @@ public class SystemDefinition extends ClassDefinition
 
 	private static Context systemContext = null;
 
-	private static String systemClassName = "undefined";
+	public static String systemClassName = "undefined";
 	
 	public SystemDefinition(LexNameToken className, DefinitionList members) throws ParserException, LexException
 	{
@@ -76,12 +73,10 @@ public class SystemDefinition extends ClassDefinition
 	
 	private static String defs =
 		"operations " +
-		"public static connectToBus: ? * ? ==> () " +
+		"public static connectToBus: ? * BUS ==> () " +
 		"	connectToBus(obj, bus) == is not yet specified; " +
-		"public static disconnectFromBus: ? * ? ==> () " +
+		"public static disconnectFromBus: ? * BUS ==> () " +
 		"	disconnectFromBus(obj, bus) == is not yet specified; " +
-		"public static disconnectFromBus: ? * BUS * bool ==> () " +
-		"	disconnectFromBus(obj, bus, idle) == is not yet specified; " +
 		"public static migrate: ? * ?  ==> () " +
 		"	migrate(obj, cpu) == is not yet specified;";
 

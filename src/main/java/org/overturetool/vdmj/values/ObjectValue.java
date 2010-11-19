@@ -51,7 +51,7 @@ public class ObjectValue extends Value
 	public final int objectReference;
 	public final ClassType type;
 	public final NameValuePairMap members;
-	public final  List<ObjectValue> superobjects;
+	public final List<ObjectValue> superobjects;
 
 	public ClassInvariantListener invlistener = null;
 
@@ -78,14 +78,14 @@ public class ObjectValue extends Value
 	
 	public ObjectValue(ClassType type,
 			NameValuePairMap members, List<ObjectValue> superobjects, CPUValue cpu, ObjectValue creator)
-		{
-			this(type, members, superobjects, cpu);
+	{
+		this(type, members, superobjects, cpu);
 
-			if(creator != null)
-			{
-				setCreator(creator);
-			}
+		if(creator != null)
+		{
+			setCreator(creator);
 		}
+	}
 
 	private static synchronized int getReference()
 	{
@@ -500,21 +500,21 @@ public class ObjectValue extends Value
 		listener.invopvalue.setSelf(this);
 	}
 
-	public synchronized void setCreator(ObjectValue creator)
+	private synchronized void setCreator(ObjectValue creator)
 	{
 		parent = creator; 
 		//establish transitive reference
 		creator.addChild(this);
 	}
 	
-	public synchronized void addChild(ObjectValue referenced)
+	private synchronized void addChild(ObjectValue referenced)
 	{
 		children.add(referenced); 
 	}
 	
-	public synchronized void detachChild(ObjectValue reference)
+	private synchronized void detachChild(ObjectValue reference)
 	{
-		children.remove(reference); 
+		children.remove(reference);
 	}
 	
 	/** 
@@ -524,7 +524,7 @@ public class ObjectValue extends Value
     * 
     * @param the target CPU of the redeploy
     * */
-	public synchronized void updateCPUandChildCPUs(CPUValue cpu)
+	private synchronized void updateCPUandChildCPUs(CPUValue cpu)
 	{
 		if(cpu != CPU)
 		{
@@ -560,8 +560,8 @@ public class ObjectValue extends Value
 	{
 		this.updateCPUandChildCPUs(cpu);
 		
-		//if we are moving to a new CPU, we are no longer a part of the transitive
-		//references from our creator, so let us remove ourself. This will prevent 
+		// if we are moving to a new CPU, we are no longer a part of the transitive
+		// references from our creator, so let us remove ourself. This will prevent 
 		// us from being updated if our creator is migrating in the 
 		// future.
 		if(parent != null)

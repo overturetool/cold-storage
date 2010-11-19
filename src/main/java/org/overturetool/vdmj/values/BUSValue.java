@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Vector;
 
 import org.overturetool.vdmj.runtime.Context;
-import org.overturetool.vdmj.runtime.ContextException;
+import org.overturetool.vdmj.scheduler.BUSConnection;
 import org.overturetool.vdmj.scheduler.BusThread;
 import org.overturetool.vdmj.scheduler.CPUResource;
 import org.overturetool.vdmj.scheduler.FCFSPolicy;
@@ -43,11 +43,11 @@ public class BUSValue extends ObjectValue
 {
 	private static final long serialVersionUID = 1L;
 	private static List<BUSValue> busses = new LinkedList<BUSValue>();
-	private static BUSValue[][] cpumap = null;
+	private static BUSConnection[][] cpumap = null;
 
 	public static BUSValue vBUS = null;
 	public final BUSResource resource;
-
+	
 	public BUSValue(ClassType classtype, NameValuePairMap map, ValueList argvals)
 	{
 		super(classtype, map, new Vector<ObjectValue>(), null);
@@ -142,12 +142,14 @@ public class BUSValue extends ObjectValue
 	public static void createMap(Context ctxt, ValueSet allCPUs)
 	{
 		int max = allCPUs.size() + 1;		// vCPU missing
-		cpumap = new BUSValue[max][max];
+		cpumap = new BUSConnection[max][max];
 
 		for (int i=0; i<max; i++)
 		{
-			cpumap[i][0] = vBUS;
-			cpumap[0][i] = vBUS;
+			cpumap[i][0] = new BUSConnection(); 
+			cpumap[0][i] = new BUSConnection(); 
+			cpumap[i][0].add(vBUS);
+			cpumap[0][i].add(vBUS);
 		}
 
 		for (Value fv: allCPUs)
@@ -165,26 +167,22 @@ public class BUSValue extends ObjectValue
 
 				BUSValue bus = findRealBUS(from, to);
 
+				int nf = from.getNumber();
+				int nt = to.getNumber();
+				
+				if(cpumap[nf][nt] == null)
+				{
+					cpumap[nf][nt] = new BUSConnection(); 
+				}
+				
 				if (bus == null)
 				{
 					continue;	// May be OK - separated island CPUs
 				}
 
-				int nf = from.getNumber();
-				int nt = to.getNumber();
+				cpumap[nf][nt].add(bus);
 
-				if (cpumap[nf][nt] == null)
-				{
-					cpumap[nf][nt] = bus;
-				}
-				else if (cpumap[nf][nt] != bus)
-				{
-					throw new ContextException(4139,
-						"CPUs " + from.getName() + " and " + to.getName() +
-						" connected by " +
-						bus.getName() + " and " + cpumap[nf][nt].getName(),
-						ctxt.location, ctxt);
-				}
+//				}
 			}
 		}
 	}
@@ -205,7 +203,7 @@ public class BUSValue extends ObjectValue
 
 	public static BUSValue lookupBUS(CPUValue from, CPUValue to)
 	{
-		return cpumap[from.getNumber()][to.getNumber()];
+		return cpumap[from.getNumber()][to.getNumber()].fastest();
 	}
 	
 	public static void connectObjToBUS(ObjectValue obj, BUSValue bus)
@@ -224,8 +222,8 @@ public class BUSValue extends ObjectValue
 				//don't map to self
 				if(cpuRes == newCpu.resource) continue;
 				
-				cpumap[newCpu.getNumber()][cpuRes.getNumber()] =  bus;
-				cpumap[cpuRes.getNumber()][newCpu.getNumber()] =  bus;
+				cpumap[newCpu.getNumber()][cpuRes.getNumber()].add(bus);
+				cpumap[cpuRes.getNumber()][newCpu.getNumber()].add(bus);
 			}
 		}
 	}
@@ -244,12 +242,11 @@ public class BUSValue extends ObjectValue
 			
 			for(CPUResource cpuRes : busRes.getCPUs())
 			{
-				cpumap[removeCpu.getNumber()][cpuRes.getNumber()] =  null;
-				cpumap[cpuRes.getNumber()][removeCpu.getNumber()] =  null;
+				cpumap[removeCpu.getNumber()][cpuRes.getNumber()].remove(bus);
+				cpumap[cpuRes.getNumber()][removeCpu.getNumber()].remove(bus);
 			}
 			
 			busRes.RemoveMessages(removeCpu);
 		}
-		
 	}
 }
