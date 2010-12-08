@@ -249,4 +249,14 @@ public class BUSValue extends ObjectValue
 			busRes.RemoveMessages(removeCpu);
 		}
 	}
+	
+	
+	public static void migrateMessages(ObjectValue migratingObj, BUSValue targetBus)
+	{
+		for(BUSValue bus : busses){
+			
+			if(bus.isVirtual()) continue;
+			bus.resource.migrateMessages(migratingObj, targetBus);
+		}
+	}
 }

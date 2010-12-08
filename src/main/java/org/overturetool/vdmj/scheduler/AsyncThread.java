@@ -23,10 +23,16 @@
 
 package org.overturetool.vdmj.scheduler;
 
+import java.util.List;
+
 import org.overturetool.vdmj.Settings;
 import org.overturetool.vdmj.commands.DebuggerReader;
 import org.overturetool.vdmj.debug.DBGPReader;
 import org.overturetool.vdmj.debug.DBGPReason;
+import org.overturetool.vdmj.definitions.SystemDefinition;
+import org.overturetool.vdmj.expressions.Expression;
+import org.overturetool.vdmj.expressions.NewExpression;
+import org.overturetool.vdmj.expressions.SeqCompExpression;
 import org.overturetool.vdmj.lex.LexLocation;
 import org.overturetool.vdmj.runtime.ClassInterpreter;
 import org.overturetool.vdmj.runtime.Context;
@@ -34,9 +40,13 @@ import org.overturetool.vdmj.runtime.ContextException;
 import org.overturetool.vdmj.runtime.ObjectContext;
 import org.overturetool.vdmj.runtime.RootContext;
 import org.overturetool.vdmj.runtime.ValueException;
+import org.overturetool.vdmj.statements.BlockStatement;
+import org.overturetool.vdmj.statements.ReturnStatement;
+import org.overturetool.vdmj.statements.Statement;
 import org.overturetool.vdmj.values.CPUValue;
 import org.overturetool.vdmj.values.ObjectValue;
 import org.overturetool.vdmj.values.OperationValue;
+import org.overturetool.vdmj.values.SeqValue;
 import org.overturetool.vdmj.values.TransactionValue;
 import org.overturetool.vdmj.values.Value;
 import org.overturetool.vdmj.values.ValueList;
@@ -153,7 +163,62 @@ public class AsyncThread extends SchedulablePoolThread
 
     		Value result = operation.localEval(
     			operation.name.location, args, ctxt, false);
-
+    		
+    		
+    		//if result is an object we may need to redeploy, inspect AST to determine 
+    		if(result instanceof ObjectValue || result instanceof SeqValue)
+    		{
+	    		//are we returning a new instance directly 
+				if(operation.body instanceof BlockStatement || operation.body instanceof ReturnStatement)
+				{
+					ReturnStatement rtnStm = null;
+					
+					//is BlockStatement, check and pull return statement if it is the only statement.
+					if(operation.body instanceof BlockStatement)
+					{
+						BlockStatement bs = (BlockStatement) operation.body;
+						List<Statement> statements = bs.statements;
+						//is only one statement  
+						if(statements.size() == 1)
+						{
+							//and is a return
+							Statement stmnt = statements.get(0);
+							if(stmnt instanceof ReturnStatement)
+							{
+								rtnStm = (ReturnStatement) stmnt;
+							}
+						}
+					}
+					else
+					{
+						//if not block, then it must be a block
+						rtnStm = (ReturnStatement) operation.body;
+					}
+					
+					if(rtnStm != null)
+					{
+						//is NewExpression
+						Expression exp = rtnStm.expression;
+						if(exp instanceof NewExpression)
+						{
+							//threads in the object are not associated on creation, but first via a start statement. 
+							//So there is no need to move thread to new ressource, merely do redeploy.
+							SystemDefinition.redeploy((ObjectValue)result, request.from);
+						}
+						//or a SeqCompExpression with a NewExpression
+						else if(exp instanceof SeqCompExpression && ((SeqCompExpression) exp).first instanceof NewExpression)
+						{
+							SeqValue seqRes =  (SeqValue)result; 
+							
+							for(Value val : seqRes.values)
+							{
+								SystemDefinition.redeploy((ObjectValue)val, request.from);
+							}
+						}
+					}
+				}
+    		}
+	
 			if (request.replyTo != null)
 			{
 				request.bus.reply(new MessageResponse(result, request));

@@ -571,4 +571,13 @@ public class ObjectValue extends Value
 			parent = null; 
 		}
 	}
+	
+	public void getTransitiveReferences(List<ObjectValue> objects)
+	{
+		objects.add(this);
+		for(ObjectValue objVal : children)
+		{
+			objVal.getTransitiveReferences(objects);
+		}
+	}
 }

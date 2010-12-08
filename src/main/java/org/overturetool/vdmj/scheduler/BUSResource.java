@@ -31,7 +31,9 @@ import java.util.List;
 
 import org.overturetool.vdmj.messages.RTLogger;
 import org.overturetool.vdmj.runtime.ExitException;
+import org.overturetool.vdmj.values.BUSValue;
 import org.overturetool.vdmj.values.CPUValue;
+import org.overturetool.vdmj.values.ObjectValue;
 import org.overturetool.vdmj.values.QuoteValue;
 
 public class BUSResource extends Resource
@@ -387,6 +389,62 @@ public class BUSResource extends Resource
 		//loops completed, now alter list.
 		messages.removeAll(msgToRemove);
 		messages.addAll(errorMsg);
+		cq.stim();
+	}
+
+	public void migrateMessages(ObjectValue migratingObj, BUSValue targetBus) {
+
+		LinkedList<MessagePacket> msgToRemove = new LinkedList<MessagePacket>();
+		MessagePacket m;
+		for(int i=0; i < messages.size() ; i++)
+		{	
+			m = messages.get(i);
+			
+			//if the message is going to the migrating object
+			if(m.target.equals(migratingObj))
+			{
+				if (m instanceof MessageResponse)
+				{
+					//response moving towards the migrating object
+					//forward the message to the BUS over which the migration is performed. 
+					targetBus.reply((MessageResponse) m);
+					msgToRemove.add(m);
+				} 
+				else
+				{
+					MessageRequest origRequest = (MessageRequest) m;
+					//message request moving towards the migrating object.
+					//update the to CPU and target BUS
+					targetBus.transmit(new MessageRequest(origRequest.dbgp, targetBus, origRequest.from, 
+							migratingObj.getCPU(), origRequest.target,  origRequest.operation,
+							origRequest.args, origRequest.replyTo, origRequest.breakAtStart));
+					
+					msgToRemove.add(m);
+				}
+			} 
+			//if the message is sent from the migrating object
+			else if(m.operation.getSelf().equals(migratingObj))
+			{
+				if (m instanceof MessageResponse)
+				{
+					//actually do nothing
+				} 
+				else
+				{
+					//MeesageRequest the migrating object
+					MessageRequest origRequest = (MessageRequest) m;
+					//message request moving towards the migrating object
+					//update the from CPU and target BUS
+					targetBus.transmit(new MessageRequest(origRequest.dbgp, targetBus, migratingObj.getCPU(), 
+							origRequest.to , origRequest.target,  origRequest.operation,
+							origRequest.args, origRequest.replyTo, origRequest.breakAtStart));
+					
+					msgToRemove.add(m);
+				}
+			}
+		}
+		
+		messages.removeAll(msgToRemove);
 		cq.stim();
 	}
 }

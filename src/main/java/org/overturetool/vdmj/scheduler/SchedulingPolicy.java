@@ -24,8 +24,10 @@
 package org.overturetool.vdmj.scheduler;
 
 import java.io.Serializable;
+import java.util.List;
 
 import org.overturetool.vdmj.scheduler.SchedulingPolicy;
+import org.overturetool.vdmj.values.ObjectValue;
 
 abstract public class SchedulingPolicy implements Serializable
 {
@@ -40,7 +42,9 @@ abstract public class SchedulingPolicy implements Serializable
 	abstract public void advance();
 	abstract public boolean hasActive();
 	abstract public boolean hasPriorities();
+	abstract public long getPriority(ISchedulableThread thread);
 	abstract public String getStatus();
+	abstract public List<ISchedulableThread> getThreadsFromObjects(List<ObjectValue> objects);
 
 	public static SchedulingPolicy factory(String type)
 	{

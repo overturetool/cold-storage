@@ -75,4 +75,9 @@ public class FPPolicy extends FCFSPolicy
 	{
 		return true;
 	}
+	
+	@Override
+	public long getPriority(ISchedulableThread thread) {
+		return priorities.get(bestThread);
+	}
 }

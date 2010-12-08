@@ -24,6 +24,8 @@
 package org.overturetool.vdmj.definitions;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.overturetool.vdmj.debug.DBGPReader;
 import org.overturetool.vdmj.expressions.UndefinedExpression;
@@ -38,7 +40,9 @@ import org.overturetool.vdmj.runtime.Context;
 import org.overturetool.vdmj.runtime.ContextException;
 import org.overturetool.vdmj.runtime.StateContext;
 import org.overturetool.vdmj.runtime.ValueException;
+import org.overturetool.vdmj.scheduler.ISchedulableThread;
 import org.overturetool.vdmj.scheduler.ResourceScheduler;
+import org.overturetool.vdmj.scheduler.SchedulingPolicy;
 import org.overturetool.vdmj.syntax.DefinitionReader;
 import org.overturetool.vdmj.syntax.ParserException;
 import org.overturetool.vdmj.typechecker.Environment;
@@ -320,15 +324,37 @@ public class SystemDefinition extends ClassDefinition
 			throw new ContextException(4140, "No BUS between CPUs " + cpuSource.getName() + " and " + cpuTarget.getName(), ctxt.location, ctxt);
 		}
 		
-		//relocate object to CPU
-		obj.redeploy(cpuTarget);
-		cpuSource.undeploy(obj); 	//object will no longer be deployed on the old cpu
-		cpuTarget.deploy(obj);
+		//redeploy
+		redeploy(obj, cpuTarget);
+
+		//find the objects threads  
+		SchedulingPolicy policy = cpuSource.resource.policy;
 		
-		//redirect if possible
+		//get all transitive objects for the migrating object
+		List<ObjectValue> objectTree = new LinkedList<ObjectValue>(); 
+		obj.getTransitiveReferences(objectTree); 
+
+		List<ISchedulableThread> migratingThreads = policy.getThreadsFromObjects(objectTree);
 		
+		//and move
+		for(ISchedulableThread migratingTh : migratingThreads)
+		{
+			long migratingPriority = policy.getPriority(migratingTh);
+			
+			cpuSource.resource.unregister(migratingTh);
+			cpuTarget.resource.register(migratingTh, migratingPriority);
+		}
 		
+		//redirect / forward messages
+		BUSValue.migrateMessages(obj, bus);
 		
 		return new VoidValue();
+	}
+
+	public static void redeploy(ObjectValue obj, CPUValue cpuTarget) {
+		//relocate object to CPU
+		obj.getCPU().undeploy(obj); 	//object will no longer be deployed on the old cpu
+		obj.redeploy(cpuTarget);
+		cpuTarget.deploy(obj);
 	}
 }

@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.overturetool.vdmj.config.Properties;
+import org.overturetool.vdmj.values.ObjectValue;
 import org.overturetool.vdmj.values.TransactionValue;
 
 public class FCFSPolicy extends SchedulingPolicy
@@ -67,6 +68,12 @@ public class FCFSPolicy extends SchedulingPolicy
 		synchronized (threads)
 		{
 			threads.remove(thread);
+			
+			//if removed thread is best, reschedule
+			if(thread.equals(bestThread))
+			{
+				this.reschedule();
+			}
 		}
 	}
 
@@ -137,6 +144,12 @@ public class FCFSPolicy extends SchedulingPolicy
 
 		return slice;
 	}
+	
+	@Override
+	public long getPriority(ISchedulableThread thread) {
+		return 0;
+	}
+	
 
 	@Override
 	public void advance()
@@ -175,6 +188,25 @@ public class FCFSPolicy extends SchedulingPolicy
 		}
 
 		return false;
+	}
+	
+	@Override
+	public List<ISchedulableThread> getThreadsFromObjects(List<ObjectValue> objects) {
+		
+		List<ISchedulableThread> objectThreads = new LinkedList<ISchedulableThread>(); 
+
+		//find all threads to migrate
+		synchronized(threads)
+		{
+			for (ISchedulableThread th: threads)
+    		{
+				if(objects.contains(th.getObject()))
+				{
+					objectThreads.add(th);
+				}
+    		}
+		}
+		return objectThreads;
 	}
 
 	@Override
