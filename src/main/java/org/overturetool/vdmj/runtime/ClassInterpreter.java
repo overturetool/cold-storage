@@ -47,6 +47,7 @@ import org.overturetool.vdmj.messages.rtlog.RTThreadKillMessage;
 import org.overturetool.vdmj.messages.rtlog.RTThreadSwapMessage;
 import org.overturetool.vdmj.messages.rtlog.RTThreadSwapMessage.SwapType;
 import org.overturetool.vdmj.messages.rtlog.nextGen.NextGenRTLogger;
+import org.overturetool.vdmj.messages.rtlog.validation.RTValidationManager;
 import org.overturetool.vdmj.messages.VDMErrorsException;
 import org.overturetool.vdmj.pog.ProofObligationList;
 import org.overturetool.vdmj.scheduler.BasicSchedulableThread;
@@ -163,6 +164,7 @@ public class ClassInterpreter extends Interpreter
 	@Override
 	public void init(DBGPReader dbgp)
 	{
+		RTValidationManager.getInstance().addTestConjectures();
 		InitThread iniThread = new InitThread(Thread.currentThread());
 		BasicSchedulableThread.setInitialThread(iniThread);
 		
@@ -202,6 +204,8 @@ public class ClassInterpreter extends Interpreter
 
 	private Value execute(Expression expr, DBGPReader dbgp) throws Exception
 	{
+		
+		
 		Context mainContext = new StateContext(
 			defaultClass.name.location, "global static scope");
 
@@ -219,7 +223,8 @@ public class ClassInterpreter extends Interpreter
 		main.start();
 		scheduler.start(main);
 
-		NextGenRTLogger.getInstance().persistToFile("out.bin");
+		NextGenRTLogger.getInstance().toFile("out.txt");
+		RTValidationManager vManager = RTValidationManager.getInstance();
 		
 		return main.getResult();	// Can throw ContextException
 	}

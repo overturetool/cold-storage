@@ -486,6 +486,7 @@ public class OperationValue extends Value
 		// by the called object, using self's CPU (see trace(msg)).
 
 		RTLogger.log(new RTOperationMessage(MessageType.Request, this, from.resource, threadId));
+		
 
 		if (from != to)		// Remote CPU call
 		{
@@ -503,6 +504,7 @@ public class OperationValue extends Value
         			bus, from, to, self, this, argValues, null, stepping);
 
         		bus.transmit(request);
+        		//validateAsync(from.resource,threadId);
         		return new VoidValue();
     		}
     		else
@@ -512,19 +514,25 @@ public class OperationValue extends Value
         			bus, from, to, self, this, argValues, result, stepping);
 
         		bus.transmit(request);
-        		MessageResponse reply = result.get(ctxt, name.location);
+        		//validateAsync(from.resource,threadId);
+        		MessageResponse reply = result.get(ctxt, name.location);        		
         		return reply.getValue();	// Can throw a returned exception
     		}
 		}
 		else	// local, must be async so don't wait
 		{
-    		MessageRequest request = new MessageRequest(ctxt.threadState.dbgp,
+			
+			MessageRequest request = new MessageRequest(ctxt.threadState.dbgp,
     			null, from, to, self, this, argValues, null, stepping);
 
-    		new AsyncThread(request).start();
+    		AsyncThread t = new AsyncThread(request);
+    		t.start();
+    		validateAsync(from.resource,t);
     		return new VoidValue();
 		}
 	}
+
+	
 
 	@Override
 	public boolean equals(Object other)
@@ -611,6 +619,17 @@ public class OperationValue extends Value
 				conj.process(name.name,classdef.getName(),kind, SystemClock.getWallTime(),ct.getId(),this.getSelf().objectReference);
 			}
 		}		
+		
+	}
+	
+	private void validateAsync(CPUResource resource, AsyncThread thread) {
+		if(conjectures.size() > 0)
+		{
+			
+			for (Conjecture conj : conjectures) {
+				conj.process(name.name,classdef.getName(),MessageType.Request, SystemClock.getWallTime(),thread.getId(),thread.getObject().objectReference);
+			}
+		}
 		
 	}
 
