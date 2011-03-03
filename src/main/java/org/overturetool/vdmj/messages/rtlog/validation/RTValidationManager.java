@@ -36,10 +36,13 @@ public class RTValidationManager {
 	
 	public void addTestConjectures()
 	{
-		IPropertyTest initializer = new OperationPropertyTest("UpdateAlgorithm", "HostController", MessageType.Request);
-		IPropertyTest ender = new OperationPropertyTest("UpdateAlgorithm", "HostController", MessageType.Completed);
+		IPropertyTest initializer = new OperationPropertyTest("AdjustVolume", "Radio", MessageType.Completed);
+		IPropertyTest ender = new OperationPropertyTest("UpdateScreen", "MMI", MessageType.Completed);
 		
-		DeadlineMet sp = new DeadlineMet(initializer, ender, 50);
+		DeadlineMet dm = new DeadlineMet(initializer, ender, 1000000000);
+		Separate sp = new Separate(initializer, ender, 1000000000);
+		
+		this.conjectures.add(dm);
 		this.conjectures.add(sp);
 	}
 	

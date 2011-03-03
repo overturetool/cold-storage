@@ -4,7 +4,6 @@ public class DeadlineMet extends Conjecture {
 
 	public DeadlineMet(IPropertyTest initializer, IPropertyTest ender, int time) {
 		super(initializer, ender, time);
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
@@ -12,9 +11,8 @@ public class DeadlineMet extends Conjecture {
 		
 		if(instance.hasEnded())
 		{
-		
-		long timePassed = instance.getEndTime() - instance.getTriggerTime();
-		return timePassed <= time;
+			long timePassed = instance.getEndTime() - instance.getTriggerTime();
+			return timePassed <= time;
 		}
 		throw new Exception("didnt end");
 		
@@ -28,6 +26,12 @@ public class DeadlineMet extends Conjecture {
 		s.append(super.toString());
 		s.append(")");
 		return s.toString();
+	}
+
+	@Override
+	protected boolean getInitialState() 
+	{
+		return true;
 	}
 	
 }

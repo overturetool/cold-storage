@@ -1,8 +1,8 @@
 package org.overturetool.vdmj.messages.rtlog.validation;
 
-public class SeparateConjecture extends Conjecture {
+public class Separate extends Conjecture {
 
-	public SeparateConjecture(IPropertyTest initializer, IPropertyTest ender,
+	public Separate(IPropertyTest initializer, IPropertyTest ender,
 			int time) {
 		super(initializer, ender, time);		
 	}
@@ -17,6 +17,21 @@ public class SeparateConjecture extends Conjecture {
 		}
 		throw new Exception("didnt end");
 		
+	}
+	
+	@Override
+	public String toString() {
+		StringBuffer s = new StringBuffer();
+		s.append("separate(");
+		s.append(super.toString());
+		s.append(")");
+		return s.toString();
+	}
+
+	@Override
+	protected boolean getInitialState()
+	{
+		return true;
 	}
 
 }

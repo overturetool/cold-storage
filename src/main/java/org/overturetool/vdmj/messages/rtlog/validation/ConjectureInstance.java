@@ -6,14 +6,17 @@ public class ConjectureInstance{
 	private boolean ended = false;
 	private long triggerTime;
 	private long triggerThread;
-	private int triggerObject;
+	private long endingThread = -1;
 	private long endTime;
+	private Conjecture conjecture;
+	private boolean validated = false;
 	
 	
-	public ConjectureInstance(long wallTime, long threadid, int objectReference) {
+	public ConjectureInstance(long wallTime, long threadid, Conjecture conjecture) {
 		this.triggerTime = wallTime;
-		this.triggerThread = threadid;
-		this.triggerObject = objectReference;
+		this.triggerThread = threadid;		
+		this.conjecture = conjecture;
+		this.validated = conjecture.getInitialState();
 	}
 
 	
@@ -28,11 +31,7 @@ public class ConjectureInstance{
 		return triggerTime;
 	}
 	
-	public void setEndTime(long time)
-	{
-		endTime = time;
-		ended = true;
-	}
+	
 	
 	public long getEndTime()
 	{
@@ -46,22 +45,40 @@ public class ConjectureInstance{
 		}
 	}
 
-
-
-	public boolean matches(long threadid, int objectReference) {
-		return threadid == triggerThread && triggerObject == objectReference;
-	}
+	
 	
 	@Override
 	public String toString() {
 		StringBuffer s = new StringBuffer();
-		s.append("Conjuncture Not Verified ->");
-		s.append(" threadid: "); s.append(triggerThread);
-		s.append(" objectid: "); s.append(triggerObject);
-		s.append(" time: "); s.append(triggerTime);
+		s.append("Conjencture -> "); s.append(conjecture.toString()); 
+		s.append(" startThreadId: "); s.append(triggerThread);		
+		s.append(" startTime: "); s.append(triggerTime);
 		s.append(" ended: "); s.append(ended);
+		s.append(" endTime: "); s.append(endTime);
+		s.append(" endThreadId: "); s.append(endingThread);
 		
 		
 		return s.toString();
+	}
+
+
+
+	public void setEnding(long wallTime, long threadid) {
+		endTime = wallTime;
+		endingThread = threadid;
+		ended = true;
+		
+	}
+
+
+
+	public boolean validate() {
+		try {
+			validated = conjecture.validate(this);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return validated;
 	}
 }

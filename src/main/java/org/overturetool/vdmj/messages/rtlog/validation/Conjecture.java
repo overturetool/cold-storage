@@ -24,6 +24,7 @@ public abstract class Conjecture {
 	
 	
 	protected abstract boolean validate(ConjectureInstance instance) throws Exception;
+	protected abstract boolean getInitialState();
 
 	public boolean associatedWith(String classdef , String opname ) {
 		return initializer.associatedWith(opname, classdef) || ender.associatedWith(opname, classdef);
@@ -45,20 +46,27 @@ public abstract class Conjecture {
 		
 		if(initializer.matches(opname,classname,kind))
 		{
-			conjectureInstances.add(new ConjectureInstance(wallTime, threadid, objectReference));
+			conjectureInstances.add(new ConjectureInstance(wallTime, threadid,this));
 		}
 		else
 		{
 			if(ender.matches(opname, classname, kind))
 			{
 				for (ConjectureInstance conjInstance : conjectureInstances) {
-					if(conjInstance.matches(threadid,objectReference) && !conjInstance.hasEnded())
-					{
-						conjInstance.setEndTime(wallTime);
+					if(!conjInstance.hasEnded())
+					{						
+						conjInstance.setEnding(wallTime,threadid);
 						try {
-							if(validate(conjInstance))
+							if(conjInstance.validate())
 							{
-								conjectureInstances.remove(conjInstance);
+								System.out.print("Conjecture validated: ");
+								System.out.println(conjInstance.toString());								
+								return;
+							}
+							else
+							{
+								System.out.print("Conjecture NOT validated: ");
+								System.out.println(conjInstance.toString());								
 								return;
 							}
 						} catch (Exception e) {
