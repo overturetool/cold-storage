@@ -14,12 +14,12 @@ public abstract class RTMessage
 		Request, Activate, Completed
 	}
 
-	static Map<String, Long> staticIds = new Hashtable<String, Long>();
+	static Map<String, Integer> staticIds = new Hashtable<String, Integer>();
 	public final static List<RTDeployStaticMessage> cachedStaticDeploys = new Vector<RTDeployStaticMessage>();
 
 	protected Long time = SystemClock.getWallTime();// Timestamp the message
 
-	protected synchronized Long getStaticId(String name)
+	protected synchronized Integer getStaticId(String name)
 	{
 		if (staticIds.containsKey(name))
 		{

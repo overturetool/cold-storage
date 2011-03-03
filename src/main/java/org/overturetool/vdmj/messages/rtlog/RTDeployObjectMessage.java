@@ -28,9 +28,9 @@ public class RTDeployObjectMessage extends RTArchitectureMessage
 		return this.cpu;
 	}
 	
-	public Long getObjRef()
+	public Integer getObjRef()
 	{
-		return Long.valueOf(this.object.objectReference);
+		return this.object.objectReference;
 	}
 
 }

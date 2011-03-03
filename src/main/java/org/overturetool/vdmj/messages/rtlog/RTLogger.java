@@ -30,6 +30,8 @@ import java.util.Vector;
 
 import org.overturetool.vdmj.messages.Console;
 import org.overturetool.vdmj.messages.rtlog.RTThreadSwapMessage.SwapType;
+import org.overturetool.vdmj.messages.rtlog.nextGen.NextGenRTLogger;
+import org.overturetool.vdmj.types.UndefinedType;
 import org.overturetool.vdmj.values.CPUValue;
 
 public class RTLogger
@@ -39,6 +41,7 @@ public class RTLogger
 	private static PrintWriter logfile = null;
 	private static RTMessage cached = null;
 	private static final List<RTMessage> deployEvents = new LinkedList<RTMessage>();
+	private static NextGenRTLogger nextGenLog = NextGenRTLogger.getInstance();
 
 	public static synchronized void enable(boolean on)
 	{
@@ -54,12 +57,28 @@ public class RTLogger
 	
 	public static synchronized void log(RTMessage message)
 	{
+	
+		oldLog(message);
+		nextGenLog.log(message);
+		
+		
+		
+		
+	}
+	
+	public static synchronized void oldLog(RTMessage message)
+	{
 		if (!enabled)
 		{
 			return;
 		}
+		
+		
+		
 		// generate any static deploys required for this message
 		message.generateStaticDeploys();
+		
+		
 		
 		//TODO remove all filtering and clean up when the new log standard have been defined
 		if (message.time == 0)

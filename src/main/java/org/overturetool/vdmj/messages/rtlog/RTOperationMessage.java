@@ -7,12 +7,12 @@ public class RTOperationMessage extends RTMessage
 {
 	public static boolean inSystemConstruction = true; //set to false in SystemDefinition when systemInit finishes
 	
-	private MessageType messageType;
-	private OperationValue operationVal;
-	private CPUResource from;
-	private long threadId;
+	public MessageType messageType;
+	public OperationValue operationVal;
+	public CPUResource from;
+	public long threadId;
 	public final boolean madeDuringSystemConstruction;
-	private Long objref;
+	public Integer objref;
 	
 	public RTOperationMessage(MessageType messageType, OperationValue operationVal, CPUResource from, long threadId)
 	{
@@ -53,7 +53,7 @@ public class RTOperationMessage extends RTMessage
 			objref = getStaticId(operationVal.classdef.name.name);
 		}else
 		{
-			objref = Long.valueOf(operationVal.getSelf().objectReference);
+			objref = Integer.valueOf(operationVal.getSelf().objectReference);
 		}
 	}
 	
@@ -67,7 +67,7 @@ public class RTOperationMessage extends RTMessage
 		return this.from;
 	}
 	
-	public Long getObjRef()
+	public Integer getObjRef()
 	{
 		return this.objref;
 	}

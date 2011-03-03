@@ -25,9 +25,9 @@ public class RTDeployStaticMessage extends RTArchitectureMessage
 		" cpunm: " + CPUValue.vCPU.getNumber();
 	}
 	
-	public Long getObjectReference()
+	public Integer getObjectReference()
 	{
-		return Long.valueOf(objRef);
+		return Integer.valueOf(objRef);
 	}
 
 }

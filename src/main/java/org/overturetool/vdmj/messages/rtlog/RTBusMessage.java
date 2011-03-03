@@ -4,7 +4,7 @@ import org.overturetool.vdmj.scheduler.MessagePacket;
 
 public abstract class RTBusMessage extends RTMessage
 {
-	protected MessagePacket message;
+	public MessagePacket message;
 
 	public RTBusMessage(MessagePacket message)
 	{

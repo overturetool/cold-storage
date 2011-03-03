@@ -46,6 +46,7 @@ import org.overturetool.vdmj.messages.rtlog.RTThreadCreateMessage;
 import org.overturetool.vdmj.messages.rtlog.RTThreadKillMessage;
 import org.overturetool.vdmj.messages.rtlog.RTThreadSwapMessage;
 import org.overturetool.vdmj.messages.rtlog.RTThreadSwapMessage.SwapType;
+import org.overturetool.vdmj.messages.rtlog.nextGen.NextGenRTLogger;
 import org.overturetool.vdmj.messages.VDMErrorsException;
 import org.overturetool.vdmj.pog.ProofObligationList;
 import org.overturetool.vdmj.scheduler.BasicSchedulableThread;
@@ -218,6 +219,8 @@ public class ClassInterpreter extends Interpreter
 		main.start();
 		scheduler.start(main);
 
+		NextGenRTLogger.getInstance().persistToFile("out.bin");
+		
 		return main.getResult();	// Can throw ContextException
 	}
 
