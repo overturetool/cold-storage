@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.overturetool.vdmj.lex.LexNameToken;
 import org.overturetool.vdmj.messages.rtlog.RTBusActivateMessage;
 import org.overturetool.vdmj.messages.rtlog.RTBusCompletedMessage;
 import org.overturetool.vdmj.messages.rtlog.RTBusMessage;
@@ -31,6 +30,7 @@ import org.overturetool.vdmj.messages.rtlog.RTThreadSwapMessage.SwapType;
 import org.overturetool.vdmj.messages.rtlog.nextGen.NextGenBusMessageEvent.NextGenBusMessageEventType;
 import org.overturetool.vdmj.messages.rtlog.nextGen.NextGenOperationEvent.OperationEventType;
 import org.overturetool.vdmj.messages.rtlog.nextGen.NextGenThreadSwapEvent.ThreadEventSwapType;
+import org.overturetool.vdmj.messages.rtlog.validation.RTValidationManager;
 import org.overturetool.vdmj.scheduler.CPUResource;
 import org.overturetool.vdmj.scheduler.ISchedulableThread;
 import org.overturetool.vdmj.scheduler.MessagePacket;
@@ -68,7 +68,7 @@ public class NextGenRTLogger {
 	private Map<Long, NextGenBusMessage> busMessage = new HashMap<Long, NextGenBusMessage>();
 	private Map<Long, NextGenThread> threadMap = new HashMap<Long, NextGenThread>();
 	private ArrayList<INextGenEvent> events = new ArrayList<INextGenEvent>();
-	private NextGenBus vBus;
+	private NextGenBus vBus;	
 	
 	
 	private NextGenRTLogger()
@@ -76,8 +76,6 @@ public class NextGenRTLogger {
 		this.addBus(0, new ArrayList<Integer>(), "vBus");
 		vBus = this.busMap.get(0);
 		this.addCpu(0, false, "vCpu", "system"); //Add the implicit virtual CPU - assuming expl means explicit
-		
-		
 	}
 	
 	public List<INextGenEvent> getEvents()
@@ -194,6 +192,7 @@ public class NextGenRTLogger {
 			NextGenBusMessageEvent e = new NextGenBusMessageEvent(busMessage,NextGenBusMessageEventType.COMPLETED, message.getLogTime());
 			//busMessage.addEvent(e);
 			this.events.add(e);
+			
 		}
 		
 		if(message instanceof RTBusReplyRequestMessage)
@@ -284,9 +283,8 @@ public class NextGenRTLogger {
 		} 
 				
 		
-		NextGenOperationEvent opEvent = new NextGenOperationEvent(getThread(m.threadId),opName,m.getLogTime(),op, obj ,eventType);
-		
-		//op.addEvent(opEvent);
+		NextGenOperationEvent opEvent = new NextGenOperationEvent(getThread(m.threadId),m.getLogTime(),op, obj ,eventType);
+				
 		this.events.add(opEvent);
 		
 	}

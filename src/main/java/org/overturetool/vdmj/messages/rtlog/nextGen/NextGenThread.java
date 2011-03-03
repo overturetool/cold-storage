@@ -1,7 +1,6 @@
 package org.overturetool.vdmj.messages.rtlog.nextGen;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
 public class NextGenThread implements Serializable {
 
@@ -13,7 +12,6 @@ public class NextGenThread implements Serializable {
 	public Long id;
 	public NextGenObject object;
 	public boolean periodic;
-	private ArrayList<NextGenThreadEvent> events = new ArrayList<NextGenThreadEvent>();
 	
 	public NextGenThread(long id, NextGenObject object, boolean periodic) 
 	{
@@ -21,12 +19,7 @@ public class NextGenThread implements Serializable {
 		this.object = object;
 		this.periodic = periodic;
 	}
-	
-	
-	public void addEvent(NextGenThreadEvent e)
-	{
-		this.events.add(e);
-	}
+		
 	
 	@Override
 	public String toString() {

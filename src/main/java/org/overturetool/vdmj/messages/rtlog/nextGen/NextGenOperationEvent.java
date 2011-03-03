@@ -16,17 +16,16 @@ public class NextGenOperationEvent implements Serializable, INextGenEvent{
 		COMPLETE
 	}
 	
-	public NextGenThread thread;
-	public String name;
+	public NextGenThread thread;	
 	public long time;
 	public NextGenOperation operation;
 	public NextGenObject object;
 	public OperationEventType type;
 	
-	public NextGenOperationEvent(NextGenThread thread, String name, long time, NextGenOperation operation, NextGenObject object, OperationEventType type) 
+	public NextGenOperationEvent(NextGenThread thread, long time, NextGenOperation operation, NextGenObject object, OperationEventType type) 
 	{
 		this.thread = thread;
-		this.name = name;
+		
 		this.time = time;
 		this.operation = operation;
 		this.object = object;
@@ -54,7 +53,7 @@ public class NextGenOperationEvent implements Serializable, INextGenEvent{
 		}
 		
 		s.append(" -> id: "); s.append(this.thread.id); 
-		s.append(" opname: \""); s.append(this.name); s.append("\"");
+		s.append(" opname: \""); s.append(this.operation.name); s.append("\"");
 		s.append(" objref: "); s.append(this.object==null ? "noref" : this.object.id );
 		s.append(" clnm: \"" ); s.append(this.operation.classDef.name); s.append("\""); 
 		s.append(" cpunm: "); s.append(this.object==null ? "0" : this.object.cpu.id);

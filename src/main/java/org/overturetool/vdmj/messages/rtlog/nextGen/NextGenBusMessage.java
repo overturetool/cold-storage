@@ -17,8 +17,7 @@ public class NextGenBusMessage implements Serializable {
 	public NextGenThread callerThread;
 	public NextGenOperation operation;
 	public Integer size;
-	public NextGenObject object;
-	private ArrayList<NextGenBusMessageEvent> events = new ArrayList<NextGenBusMessageEvent>();
+	public NextGenObject object;	
 	
 	
 	
@@ -35,10 +34,6 @@ public class NextGenBusMessage implements Serializable {
 		this.object = object;
 	}
 	
-	public void addEvent(NextGenBusMessageEvent e)
-	{
-		this.events.add(e);
-	}
 	
 	
 	@Override

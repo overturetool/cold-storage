@@ -1,7 +1,6 @@
 package org.overturetool.vdmj.messages.rtlog.nextGen;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
 public class NextGenOperation implements Serializable {
 
@@ -14,7 +13,6 @@ public class NextGenOperation implements Serializable {
 	public NextGenClassDefinition classDef;
 	public boolean isAsync;
 	public boolean isStatic;
-	public ArrayList<NextGenOperationEvent> events = new ArrayList<NextGenOperationEvent>();
 	
 	
 	
@@ -27,11 +25,7 @@ public class NextGenOperation implements Serializable {
 		this.isStatic = isStatic;		
 	}
 	
-	public void addEvent(NextGenOperationEvent e)
-	{
-		this.events.add(e);
-	}
-	
+
 	@Override
 	public String toString() 
 	{
