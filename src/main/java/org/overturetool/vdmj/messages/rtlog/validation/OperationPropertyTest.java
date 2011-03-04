@@ -12,10 +12,27 @@ public class OperationPropertyTest implements IPropertyTest {
 	private String opName;
 	private MessageType type;
 	
+	
+	private boolean binary;
+	private String leftSideBinExp;
+	private String rightSideBinExp;
+	
+	
+	
 	public OperationPropertyTest(String opName, String className, MessageType type) {
 		this.className = className;
 		this.opName = opName;
 		this.type = type;
+		this.binary = false;
+	}
+	
+	public OperationPropertyTest(String opName, String className, MessageType type,String left, String right) {
+		this.className = className;
+		this.opName = opName;
+		this.type = type;
+		this.binary = true;
+		this.leftSideBinExp = left;
+		this.rightSideBinExp = right;
 	}
 	
 	public boolean validate(INextGenEvent e) 

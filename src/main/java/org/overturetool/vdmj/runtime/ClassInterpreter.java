@@ -224,6 +224,7 @@ public class ClassInterpreter extends Interpreter
 		scheduler.start(main);
 
 		NextGenRTLogger.getInstance().toFile("out.txt");
+		NextGenRTLogger.getInstance().persistToFile("out.bin");
 		RTValidationManager vManager = RTValidationManager.getInstance();
 		
 		return main.getResult();	// Can throw ContextException

@@ -7,6 +7,7 @@ import java.util.List;
 import org.overturetool.vdmj.definitions.ClassDefinition;
 import org.overturetool.vdmj.lex.LexNameToken;
 import org.overturetool.vdmj.messages.rtlog.RTMessage.MessageType;
+import org.overturetool.vdmj.values.NameValuePairList;
 
 
 public class RTValidationManager {
@@ -66,6 +67,11 @@ public class RTValidationManager {
 		}
 		
 		return res;
+	}
+
+	public void areValuesAssociatedWithConjectures(NameValuePairList nvpl) {
+		// TODO Auto-generated method stub
+		
 	}
 	
 	

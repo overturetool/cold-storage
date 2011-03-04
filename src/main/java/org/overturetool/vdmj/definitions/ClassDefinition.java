@@ -36,6 +36,7 @@ import org.overturetool.vdmj.lex.LexLocation;
 import org.overturetool.vdmj.lex.LexNameList;
 import org.overturetool.vdmj.lex.LexNameToken;
 import org.overturetool.vdmj.lex.Token;
+import org.overturetool.vdmj.messages.rtlog.validation.RTValidationManager;
 import org.overturetool.vdmj.patterns.PatternList;
 import org.overturetool.vdmj.pog.POContextStack;
 import org.overturetool.vdmj.pog.ProofObligationList;
@@ -1269,7 +1270,8 @@ public class ClassDefinition extends Definition
 			{
 				NameValuePairList nvpl =
 					d.getNamedValues(initCtxt).getUpdatable(listeners);
-
+				 
+				RTValidationManager.getInstance().areValuesAssociatedWithConjectures(nvpl);
 				initCtxt.putList(nvpl);
 				members.putAll(nvpl);
 			}
