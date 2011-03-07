@@ -45,8 +45,8 @@ import org.overturetool.vdmj.messages.rtlog.RTExtendedTextMessage;
 import org.overturetool.vdmj.messages.rtlog.RTLogger;
 import org.overturetool.vdmj.messages.rtlog.RTOperationMessage;
 import org.overturetool.vdmj.messages.rtlog.RTMessage.MessageType;
-import org.overturetool.vdmj.messages.rtlog.validation.Conjecture;
 import org.overturetool.vdmj.messages.rtlog.validation.RTValidationManager;
+import org.overturetool.vdmj.messages.rtlog.validation.definitions.ConjectureDefinition;
 import org.overturetool.vdmj.patterns.Pattern;
 import org.overturetool.vdmj.patterns.PatternList;
 import org.overturetool.vdmj.runtime.ClassContext;
@@ -105,7 +105,7 @@ public class OperationValue extends Value
 	private boolean traceRT = true;
 	
 	//RTvalidation
-	private List<Conjecture> conjectures = null;
+	private List<ConjectureDefinition> conjectures = null;
 
 	public OperationValue(ExplicitOperationDefinition def,
 		FunctionValue precondition, FunctionValue postcondition,
@@ -615,7 +615,7 @@ public class OperationValue extends Value
 		{
 			ISchedulableThread ct = BasicSchedulableThread.getThread(Thread.currentThread());
 			
-			for (Conjecture conj : conjectures) {
+			for (ConjectureDefinition conj : conjectures) {
 				conj.process(name.name,classdef.getName(),kind, SystemClock.getWallTime(),ct.getId(),this.getSelf().objectReference);
 			}
 		}		
@@ -626,7 +626,7 @@ public class OperationValue extends Value
 		if(conjectures.size() > 0)
 		{
 			
-			for (Conjecture conj : conjectures) {
+			for (ConjectureDefinition conj : conjectures) {
 				conj.process(name.name,classdef.getName(),MessageType.Request, SystemClock.getWallTime(),thread.getId(),thread.getObject().objectReference);
 			}
 		}

@@ -23,7 +23,10 @@
 
 package org.overturetool.vdmj.definitions;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 import org.overturetool.vdmj.debug.DBGPReader;
 import org.overturetool.vdmj.expressions.Expression;
@@ -36,6 +39,7 @@ import org.overturetool.vdmj.lex.LexNameToken;
 import org.overturetool.vdmj.messages.rtlog.RTDeclareCPUMessage;
 import org.overturetool.vdmj.messages.rtlog.RTLogger;
 import org.overturetool.vdmj.messages.rtlog.RTOperationMessage;
+import org.overturetool.vdmj.messages.rtlog.validation.RTValidationManager;
 import org.overturetool.vdmj.runtime.Context;
 import org.overturetool.vdmj.runtime.ContextException;
 import org.overturetool.vdmj.runtime.StateContext;
@@ -49,10 +53,12 @@ import org.overturetool.vdmj.types.UnresolvedType;
 import org.overturetool.vdmj.values.BUSValue;
 import org.overturetool.vdmj.values.CPUValue;
 import org.overturetool.vdmj.values.NameValuePairList;
+import org.overturetool.vdmj.values.NameValuePairMap;
 import org.overturetool.vdmj.values.ObjectValue;
 import org.overturetool.vdmj.values.QuoteValue;
 import org.overturetool.vdmj.values.RealValue;
 import org.overturetool.vdmj.values.UpdatableValue;
+import org.overturetool.vdmj.values.Value;
 import org.overturetool.vdmj.values.ValueList;
 import org.overturetool.vdmj.values.ValueSet;
 
@@ -204,6 +210,10 @@ public class SystemDefinition extends ClassDefinition
 			system = makeNewInstance(null, new ValueList(),
 					systemContext, new HashMap<LexNameToken, ObjectValue>());
 
+			// Associate variables with listeners 
+			
+			associateVariablesWithRTValidator();
+			
 			// Do CPUs first so that default BUSses can connect all CPUs.
 
 			ValueSet cpus = new ValueSet();
@@ -286,6 +296,104 @@ public class SystemDefinition extends ClassDefinition
     		throw new ContextException(
     			4135, "Cannot instantiate a system class", location, systemContext);
     	}
+	}
+
+	private void associateVariablesWithRTValidator() {
+		List<String[]> variables = RTValidationManager.getInstance().getMonitoredValues();
+		
+		variables = filterVariablesInSystem(this.name.name,variables);
+		Context ctxt = this.getStatics();
+		
+		
+		for (String[] strings : variables) {
+			Value v = digInCtxt(strings,ctxt);
+			System.out.println("Variable " + strings[strings.length - 1] + " has value " + v.toString());
+			RTValidationManager.getInstance().associateVariableWithRTValidator(strings,v);
+		}
+		
+		//System.out.println(ctxt);
+		
+		
+	}
+
+	private Value digInCtxt(String[] strings, Context ctxt) {
+		
+		List<String> rest = new ArrayList<String>();
+		for(int i = 1; i< strings.length;i ++)
+		{
+			rest.add(strings[i]);
+		}
+		
+		for (LexNameToken name : ctxt.keySet()) {
+			if(name.name.equals(rest.get(0)))
+			{		
+				Value v = ctxt.get(name);
+				if(rest.size() > 1)
+				{
+					return digInVariable(v,rest.subList(1, rest.size()),ctxt);
+				}
+				else
+				{
+					return v; 
+				}
+			}
+		}
+		
+		return null;
+		
+	}
+
+	private Value digInVariable(Value value, List<String> rest, Context ctxt) {
+		
+		try {
+			ObjectValue ov = value.objectValue(ctxt);			
+			NameValuePairMap nvpm = ov.members;
+			
+			for (LexNameToken name : nvpm.keySet()) {
+				if(name.name.equals(rest.get(0)))
+				{
+					Value v = nvpm.get(name);
+					
+					if(rest.size() > 1)
+					{
+						return digInVariable(v,rest.subList(1, rest.size()) , ctxt);
+					}
+					else
+					{
+						return v;
+					}
+				}
+			}
+			
+			
+			
+		} catch (ValueException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		
+		
+		
+		
+		
+		System.out.println(value);
+		return null;
+	}
+
+	private List<String[]> filterVariablesInSystem(String name,
+			List<String[]> variables) {
+		for (int i = 0; i < variables.size(); i++) {
+
+			if(!variables.get(i)[0].equals(name))
+			{
+				variables.remove(i);
+				i--;
+			}
+			
+		}
+		return variables;
 	}
 
 	@Override
