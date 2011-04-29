@@ -307,7 +307,6 @@ public class SystemDefinition extends ClassDefinition
 		
 		for (String[] strings : variables) {
 			Value v = digInCtxt(strings,ctxt);
-			System.out.println("Variable " + strings[strings.length - 1] + " has value " + v.toString());
 			RTValidationManager.getInstance().associateVariableWithRTValidator(strings,v);
 		}
 		
@@ -373,12 +372,7 @@ public class SystemDefinition extends ClassDefinition
 		}
 		
 		
-		
-		
-		
-		
-		
-		System.out.println(value);
+				
 		return null;
 	}
 

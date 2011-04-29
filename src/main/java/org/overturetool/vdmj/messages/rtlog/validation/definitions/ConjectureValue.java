@@ -1,11 +1,7 @@
 package org.overturetool.vdmj.messages.rtlog.validation.definitions;
 
-import org.overturetool.vdmj.lex.LexLocation;
-import org.overturetool.vdmj.runtime.Context;
-import org.overturetool.vdmj.values.Value;
-import org.overturetool.vdmj.values.ValueListener;
 
-public class ConjectureValue implements ValueListener {
+public class ConjectureValue {
 
 	private ConjectureDefinition def;
 	private long triggerTime;
@@ -26,7 +22,7 @@ public class ConjectureValue implements ValueListener {
 		this.isEnded = true;
 		this.endTime = endTime;
 		this.validated = this.def.validate(triggerTime, endTime);
-		printValidation();
+		//printValidation();
 	}
 	
 	private void printValidation() 
@@ -46,10 +42,9 @@ public class ConjectureValue implements ValueListener {
 		return this.isEnded;
 	}
 
-	public void changedValue(LexLocation location, Value value, Context ctxt) {
-		// TODO Auto-generated method stub
-		
+	public long getEndTime()
+	{
+		return endTime;
 	}
-	
 	
 }

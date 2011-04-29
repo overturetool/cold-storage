@@ -11,6 +11,7 @@ import org.overturetool.vdmj.messages.rtlog.validation.definitions.ConjectureDef
 import org.overturetool.vdmj.messages.rtlog.validation.definitions.DeadlineMet;
 import org.overturetool.vdmj.messages.rtlog.validation.definitions.OperationValidationExpression;
 import org.overturetool.vdmj.messages.rtlog.validation.definitions.ValueValidationExpression;
+import org.overturetool.vdmj.messages.rtlog.validation.definitions.ValueValidationExpression.BinaryOps;
 import org.overturetool.vdmj.values.NameValuePairList;
 import org.overturetool.vdmj.values.Value;
 
@@ -44,9 +45,10 @@ public class RTValidationManager {
 	{
 		OperationValidationExpression init = new OperationValidationExpression("AdjustVolume",  "Radio",  MessageType.Completed);
 		OperationValidationExpression ender = new OperationValidationExpression("UpdateScreen",  "MMI",  MessageType.Completed);
-		ValueValidationExpression value = new ValueValidationExpression(new String[]{"RadNavSys","radio","volume"}, "<",new String[]{"Radio","MAX"} );
+		ValueValidationExpression value = new ValueValidationExpression(new String[]{"RadNavSys","radio","volume"}, BinaryOps.LESS , new String[]{"RadNavSys","radio","max"} );
 		
 		DeadlineMet dm = new DeadlineMet(init,value, ender, 1000000000);
+		
 		//Separate sp = new Separate(initializer, ender, 1000000000);
 		
 		this.conjectures.add(dm);

@@ -1270,8 +1270,7 @@ public class ClassDefinition extends Definition
 			{
 				NameValuePairList nvpl =
 					d.getNamedValues(initCtxt).getUpdatable(listeners);
-				 
-				RTValidationManager.getInstance().areValuesAssociatedWithConjectures(nvpl);
+							
 				initCtxt.putList(nvpl);
 				members.putAll(nvpl);
 			}

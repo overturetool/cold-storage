@@ -6,10 +6,11 @@ import java.util.List;
 import org.overturetool.vdmj.lex.LexLocation;
 import org.overturetool.vdmj.messages.rtlog.RTMessage.MessageType;
 import org.overturetool.vdmj.runtime.Context;
+import org.overturetool.vdmj.scheduler.SystemClock;
 import org.overturetool.vdmj.values.Value;
 import org.overturetool.vdmj.values.ValueListener;
 
-public abstract class ConjectureDefinition implements ValueListener{
+public abstract class ConjectureDefinition{
 
 	public OperationValidationExpression opExpr;
 	public ValueValidationExpression valueExpr;
@@ -38,6 +39,16 @@ public abstract class ConjectureDefinition implements ValueListener{
 		this.endingExpr = endingExpr;
 		this.valueExpr = valueExpr;
 		this.interval = interval;
+		
+		if(valueExpr != null)
+		{
+			valueExpr.setConjecture(this);
+		}
+		
+		if(endingExpr instanceof ValueValidationExpression)
+		{
+			((ValueValidationExpression)endingExpr).setConjecture(this);
+		}
 	}
 	
 	public ConjectureDefinition(ValueValidationExpression valueExpr,
@@ -57,22 +68,7 @@ public abstract class ConjectureDefinition implements ValueListener{
 		this.valueExpr = c.valueExpr;
 		this.interval = c.interval;
 	}
-
-	public void changedValue(LexLocation location, Value value, Context ctxt) {
-		if(this.opExpr == null && this.valueExpr.isAssociatedWith(location))
-		{
-			// start a new instantiation
-		}
-		else
-		{
-			if(this.endingExpr instanceof ValueValidationExpression)
-			{
-				//try to close some instantiations
-				
-			}
-		}
-	}
-
+	
 	
 	
 	abstract public boolean validate(long triggerTime, long endTime);
@@ -101,14 +97,18 @@ public abstract class ConjectureDefinition implements ValueListener{
 		
 		if(opExpr.matches(opname,classname,kind))
 		{
-			if(valueExpr != null && valueExpr.isTrue())
+			if(valueExpr != null)
 			{
-				conjectureValues.add(new ConjectureValue(this, wallTime));
+				if(valueExpr.isTrue())
+				{
+					conjectureValues.add(new ConjectureValue(this, wallTime));
+				}
 			}
 			else
-			{
+			{			
 				conjectureValues.add(new ConjectureValue(this, wallTime));
 			}
+			
 		}
 		else
 		{
@@ -183,6 +183,33 @@ public abstract class ConjectureDefinition implements ValueListener{
 			ValueValidationExpression vve = (ValueValidationExpression) endingExpr;
 			if(vve.isValueMonitored(strings)){
 				vve.associateVariable(strings,v);
+			}
+		}
+		
+	}
+
+	public void valueChanged(ValueValidationExpression valueValidationExpression) {
+		if(opExpr == null && valueValidationExpression == valueExpr)
+		{
+			if(valueExpr.isTrue())
+			{
+				conjectureValues.add(new ConjectureValue(this, SystemClock.getWallTime()));
+			}
+		}
+		else
+		{
+			if(endingExpr instanceof ValueValidationExpression)
+			{
+				if(((ValueValidationExpression) endingExpr).isTrue())
+				{
+					for (ConjectureValue conj : conjectureValues) 
+					{
+						if(!conj.isEnded())
+						{
+							conj.setEnd(SystemClock.getWallTime());
+						}
+					}
+				}
 			}
 		}
 		

@@ -204,6 +204,8 @@ public class ClassInterpreter extends Interpreter
 
 	private Value execute(Expression expr, DBGPReader dbgp) throws Exception
 	{
+		 long before = System.currentTimeMillis();
+		
 		
 		
 		Context mainContext = new StateContext(
@@ -225,8 +227,11 @@ public class ClassInterpreter extends Interpreter
 
 		NextGenRTLogger.getInstance().toFile("out.txt");
 		NextGenRTLogger.getInstance().persistToFile("out.bin");
-		RTValidationManager vManager = RTValidationManager.getInstance();
+		//RTValidationManager vManager = RTValidationManager.getInstance();
 		
+		 long after = System.currentTimeMillis();
+		 System.out.println("Executed in " + (double)(after-before)/1000 + " secs. ");
+		 
 		return main.getResult();	// Can throw ContextException
 	}
 

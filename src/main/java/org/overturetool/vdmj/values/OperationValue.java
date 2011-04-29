@@ -133,8 +133,8 @@ public class OperationValue extends Value
 			!name.name.startsWith("inv_");
 		
 		conjectures = RTValidationManager.getInstance().getAssociatedConjectures(name, classdef);
-		if(conjectures.size()>0)  
-			System.out.println(classdef.getName() + "`" + name.name + " has conjectures");
+//		if(conjectures.size()>0)  
+//			System.out.println(classdef.getName() + "`" + name.name + " has conjectures");
 	}
 
 	public OperationValue(ImplicitOperationDefinition def,
