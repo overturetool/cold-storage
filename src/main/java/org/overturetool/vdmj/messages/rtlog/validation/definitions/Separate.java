@@ -3,10 +3,10 @@ package org.overturetool.vdmj.messages.rtlog.validation.definitions;
 
 public class Separate extends ConjectureDefinition {
 
-	public Separate(OperationValidationExpression opExpr,
+	public Separate(String name,OperationValidationExpression opExpr,
 			ValueValidationExpression valueExpr,
 			IValidationExpression endingExpr, int interval) {
-		super(opExpr, valueExpr, endingExpr, interval);
+		super(name,opExpr, valueExpr, endingExpr, interval);
 		startupValue = true;		
 	}
 

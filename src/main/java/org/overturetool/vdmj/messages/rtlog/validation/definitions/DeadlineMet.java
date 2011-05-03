@@ -2,10 +2,10 @@ package org.overturetool.vdmj.messages.rtlog.validation.definitions;
 
 public class DeadlineMet extends ConjectureDefinition {
 
-	public DeadlineMet(OperationValidationExpression opExpr,
+	public DeadlineMet(String name,OperationValidationExpression opExpr,
 			ValueValidationExpression valueExpr,
 			IValidationExpression endingExpr, int interval) {
-		super(opExpr, valueExpr, endingExpr, interval);
+		super(name,opExpr, valueExpr, endingExpr, interval);
 		startupValue = false;
 	}
 	
@@ -18,7 +18,7 @@ public class DeadlineMet extends ConjectureDefinition {
 	@Override
 	public String toString() {
 		StringBuffer s = new StringBuffer();
-		s.append("separate(");
+		s.append("deadlineMet(");
 		s.append(super.toString());
 		s.append(")");
 		return s.toString();

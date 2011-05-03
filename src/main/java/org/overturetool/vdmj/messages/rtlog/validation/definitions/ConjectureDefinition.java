@@ -12,6 +12,8 @@ import org.overturetool.vdmj.values.ValueListener;
 
 public abstract class ConjectureDefinition{
 
+	
+	public String name;
 	public OperationValidationExpression opExpr;
 	public ValueValidationExpression valueExpr;
 	public IValidationExpression endingExpr;
@@ -20,21 +22,23 @@ public abstract class ConjectureDefinition{
 	public boolean startupValue;
 	
 	
-	public ConjectureDefinition(OperationValidationExpression opExpr, 
+	public ConjectureDefinition(String name,OperationValidationExpression opExpr, 
 			IValidationExpression endingExpr, 
 			int interval) 
 	{
+		this.name = name;
 		this.opExpr = opExpr;
 		this.endingExpr = endingExpr;
 		this.valueExpr = null;
 		this.interval = interval;
 	}
 	
-	public ConjectureDefinition(OperationValidationExpression opExpr, 
+	public ConjectureDefinition(String name,OperationValidationExpression opExpr, 
 			ValueValidationExpression valueExpr,
 			IValidationExpression endingExpr,
 			int interval) 
 	{
+		this.name = name;
 		this.opExpr = opExpr;
 		this.endingExpr = endingExpr;
 		this.valueExpr = valueExpr;
@@ -93,7 +97,24 @@ public abstract class ConjectureDefinition{
 	
 	
 	public void process(String opname, String classname, MessageType kind,
-			long wallTime, long id, int objectReference) {
+			long wallTime, long threadId, int objectReference) {
+		
+		if(endingExpr instanceof OperationValidationExpression)
+		{
+			OperationValidationExpression ove = (OperationValidationExpression) endingExpr;
+			
+			if(ove.matches(opname, classname, kind))
+			{
+				for (ConjectureValue conj : conjectureValues) 
+				{
+					if(!conj.isEnded())
+					{
+						conj.setEnd(wallTime,threadId,objectReference);
+					}
+				}
+			}
+		}
+		
 		
 		if(opExpr.matches(opname,classname,kind))
 		{
@@ -101,33 +122,18 @@ public abstract class ConjectureDefinition{
 			{
 				if(valueExpr.isTrue())
 				{
-					conjectureValues.add(new ConjectureValue(this, wallTime));
+					conjectureValues.add(new ConjectureValue(this, wallTime, threadId, objectReference));
 				}
 			}
 			else
 			{			
-				conjectureValues.add(new ConjectureValue(this, wallTime));
+				conjectureValues.add(new ConjectureValue(this, wallTime, threadId, objectReference));
 			}
 			
 		}
-		else
-		{
-			if(endingExpr instanceof OperationValidationExpression)
-			{
-				OperationValidationExpression ove = (OperationValidationExpression) endingExpr;
-				
-				if(ove.matches(opname, classname, kind))
-				{
-					for (ConjectureValue conj : conjectureValues) 
-					{
-						if(!conj.isEnded())
-						{
-							conj.setEnd(wallTime);
-						}
-					}
-				}
-			}
-		}
+		
+			
+		
 		
 	}
 
@@ -193,7 +199,7 @@ public abstract class ConjectureDefinition{
 		{
 			if(valueExpr.isTrue())
 			{
-				conjectureValues.add(new ConjectureValue(this, SystemClock.getWallTime()));
+				conjectureValues.add(new ConjectureValue(this, SystemClock.getWallTime(),-1,-1));
 			}
 		}
 		else
@@ -206,7 +212,7 @@ public abstract class ConjectureDefinition{
 					{
 						if(!conj.isEnded())
 						{
-							conj.setEnd(SystemClock.getWallTime());
+							conj.setEnd(SystemClock.getWallTime(),-1,-1);
 						}
 					}
 				}
@@ -216,5 +222,50 @@ public abstract class ConjectureDefinition{
 	}
 	
 	
+	public boolean isPassed()
+	{
+		for (ConjectureValue cv : conjectureValues) {
+			if(!cv.isValidated())
+			{
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	
+	public void printLogFormat()
+	{
+		StringBuffer s = new StringBuffer();
+		s.append("\"" + this.name + "\"" + " " + "\"" + this.toString() + "\"" + " "  );
+		
+		if(isPassed())
+		{
+			s.append("PASS");
+			System.out.println(s.toString());
+		}
+		else
+		{
+			for (ConjectureValue cv : conjectureValues) {
+				if(!cv.isValidated())
+				{
+					StringBuffer ts = new StringBuffer(s.toString());
+					
+					ts.append(cv.triggerTime);
+					ts.append(" ");
+					ts.append(cv.triggerThreadId);
+					ts.append(" ");
+					ts.append(cv.endTime);
+					ts.append(" ");
+					ts.append(cv.endThreadId);
+					System.out.println(ts.toString());
+				}
+				
+			}
+		}
+		
+		
+		
+	}
 	
 }

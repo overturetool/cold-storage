@@ -4,33 +4,53 @@ package org.overturetool.vdmj.messages.rtlog.validation.definitions;
 public class ConjectureValue {
 
 	private ConjectureDefinition def;
-	private long triggerTime;
-	private boolean validated;
+	public long triggerTime;
+	public boolean validated;
 	
-	private long endTime;
+	//Responsible threads/objects
+	public long triggerThreadId;
+	public int triggerObjectId;
+	
+	public long endThreadId;
+	public int endObjectId;
+	
+	
+	public long endTime;
 	private boolean isEnded = false;
 	
-	public ConjectureValue(ConjectureDefinition def, long triggerTime) 
+	public ConjectureValue(ConjectureDefinition def, long triggerTime, long triggerThreadId, int triggerObjectId) 
 	{
 		this.def = def;
 		this.triggerTime = triggerTime;
 		this.validated = def.startupValue;
+		this.triggerThreadId = triggerThreadId;
+		this.triggerObjectId = triggerObjectId;
 	}
 	
-	public void setEnd(long endTime)
+	public void setEnd(long endTime, long threadId, int objectReference)
 	{
 		this.isEnded = true;
 		this.endTime = endTime;
+		this.endThreadId = threadId;
+		this.endObjectId = objectReference;
 		this.validated = this.def.validate(triggerTime, endTime);
-		//printValidation();
+		printValidation();
 	}
 	
 	private void printValidation() 
 	{
-		System.out.print("Conjecture validated: ");
-		System.out.print(this.validated + " ");
+		System.out.println("-----------------------------------------");
+		System.out.print("Conjecture: ");
 		System.out.println(def.toString());
+		System.out.println("Validated? " + this.validated);
+		System.out.println("Trigger - time: " + triggerTime + " thread: " + triggerThreadId); 
+		System.out.println("Ending  - time: " + endTime + " thread: " + endThreadId);
+		System.out.println("-----------------------------------------");
+				
 	}
+	
+	
+	
 
 	public boolean isValidated()
 	{
