@@ -25,6 +25,9 @@ package org.overturetool.vdmj;
 
 import org.overturetool.vdmj.definitions.BUSClassDefinition;
 import org.overturetool.vdmj.definitions.CPUClassDefinition;
+import org.overturetool.vdmj.definitions.ChannelClassDefinition;
+import org.overturetool.vdmj.definitions.ConstituentClassDefinition;
+import org.overturetool.vdmj.definitions.SystemDefinition;
 import org.overturetool.vdmj.lex.Dialect;
 import org.overturetool.vdmj.messages.InternalException;
 
@@ -42,6 +45,9 @@ public class VDMRT extends VDMPP
 		{
 			classes.add(new CPUClassDefinition());
   			classes.add(new BUSClassDefinition());
+  			SystemDefinition.constituentClsDefInstance = new ConstituentClassDefinition();
+  			classes.add(SystemDefinition.constituentClsDefInstance);
+  			classes.add(new ChannelClassDefinition());
 		}
 		catch (Exception e)
 		{

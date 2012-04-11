@@ -33,6 +33,11 @@ public class BUSConnection implements Comparator<BUSValue>
 		 busses = new ArrayList<BUSValue> ();
 	 }
 	 
+	 public BUSConnection(BUSValue initialBUS){
+		 busses = new ArrayList<BUSValue> ();
+		 busses.add(initialBUS);
+	 }
+	 
 	 public void add(BUSValue bus)
 	 {
 		 if(!busses.contains(bus))

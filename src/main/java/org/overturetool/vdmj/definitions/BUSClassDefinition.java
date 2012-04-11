@@ -55,6 +55,17 @@ public class BUSClassDefinition extends ClassDefinition
 		instance = this;
 	}
 
+	public BUSClassDefinition(LexNameToken lexNameToken,
+			LexNameList lexNameList, DefinitionList operationDefs) {
+		
+		super(
+			lexNameToken,
+			lexNameList,
+			operationDefs);
+		
+		instance = this;
+	}
+
 	private static String defs =
 		"operations " +
 		"public BUS:(<FCFS>|<CSMACD>) * real * set of CPU ==> BUS " +

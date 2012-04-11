@@ -27,6 +27,7 @@ package org.overturetool.vdmj.statements;
 import org.overturetool.vdmj.Settings;
 import org.overturetool.vdmj.definitions.CPUClassDefinition;
 import org.overturetool.vdmj.definitions.ClassDefinition;
+import org.overturetool.vdmj.definitions.ConstituentClassDefinition;
 import org.overturetool.vdmj.definitions.SystemDefinition;
 import org.overturetool.vdmj.lex.Dialect;
 import org.overturetool.vdmj.lex.LexLocation;
@@ -131,21 +132,48 @@ public class NotYetSpecifiedStatement extends Statement
     			return CPUClassDefinition.setPriority(ctxt);
     		}
 		} 
+		else if (location.module.equals("Constituent"))
+		{
+			if (ctxt.title.equals("deploy(obj)"))
+    		{
+    			return ConstituentClassDefinition.deploy(ctxt);
+    		}
+    		else if (ctxt.title.equals("deploy(obj, name)"))
+    		{
+    			return ConstituentClassDefinition.deploy(ctxt);
+    		}
+    		else if (ctxt.title.equals("setPriority(opname, priority)"))
+    		{
+    			return ConstituentClassDefinition.setPriority(ctxt);
+    		}
+		}
 		else if(ctxt instanceof ClassContext)
 		{
 			//check for system class
 			ClassContext clsCtxt = (ClassContext)ctxt;
 			if(clsCtxt.classdef instanceof SystemDefinition)
 			{
-				if(ctxt.title.equals("connectToBus(obj, bus)"))
+				if(ctxt.title.equals("connect(system, channel)"))
 				{
-					return SystemDefinition.connectToBus(ctxt);
+					return SystemDefinition.connect(ctxt);
 				}
-				else if(ctxt.title.equals("disconnectFromBus(obj, bus)"))
+				else if(ctxt.title.equals("disconnect(system, channel)"))
 				{
 					return SystemDefinition.disconnectFromBus(ctxt);
 				}
-				else if(ctxt.title.equals("migrate(obj, cpu)"))
+				else if(ctxt.title.equals("addConstituent(speed)"))
+				{
+					return SystemDefinition.addConstituent(ctxt);
+				}
+				else if(ctxt.title.equals("removeConstituent(system)"))
+				{
+					return SystemDefinition.migrate(ctxt);
+				}
+				else if(ctxt.title.equals("addChannel(capacity, systems)"))
+				{
+					return SystemDefinition.migrate(ctxt);
+				}
+				else if(ctxt.title.equals("removeChannel(channel)"))
 				{
 					return SystemDefinition.migrate(ctxt);
 				}

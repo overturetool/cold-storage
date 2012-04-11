@@ -36,8 +36,10 @@ import org.overturetool.vdmj.lex.LexNameList;
 import org.overturetool.vdmj.lex.LexNameToken;
 import org.overturetool.vdmj.lex.LexTokenReader;
 import org.overturetool.vdmj.messages.RTLogger;
+import org.overturetool.vdmj.runtime.ClassInterpreter;
 import org.overturetool.vdmj.runtime.Context;
 import org.overturetool.vdmj.runtime.ContextException;
+import org.overturetool.vdmj.runtime.Interpreter;
 import org.overturetool.vdmj.runtime.StateContext;
 import org.overturetool.vdmj.runtime.ValueException;
 import org.overturetool.vdmj.scheduler.ISchedulableThread;
@@ -69,6 +71,9 @@ public class SystemDefinition extends ClassDefinition
 
 	public static String systemClassName = "undefined";
 	
+	private static int constituentNumber = 1;
+	public static ConstituentClassDefinition constituentClsDefInstance = null;
+	
 	public SystemDefinition(LexNameToken className, DefinitionList members) throws ParserException, LexException
 	{
 		super(className, new LexNameList(), operationDefs(className.name ,members));
@@ -77,12 +82,14 @@ public class SystemDefinition extends ClassDefinition
 	
 	private static String defs =
 		"operations " +
-		"public static connectToBus: ? * BUS ==> () " +
-		"	connectToBus(obj, bus) == is not yet specified; " +
-		"public static disconnectFromBus: ? * BUS ==> () " +
-		"	disconnectFromBus(obj, bus) == is not yet specified; " +
+		"public static connect: Constituent * Channel ==> () " +
+		"	connect(system, channel) == is not yet specified; " +
+		"public static disconnect: Constituent * Channel ==> () " +
+		"	disconnect(system, channel) == is not yet specified; " +
 		"public static migrate: ? * ?  ==> () " +
-		"	migrate(obj, cpu) == is not yet specified;";
+		"	migrate(obj, cpu) == is not yet specified;" +
+		"public static addConstituent : real ==> Constituent " +
+			"addConstituent(speed) == is not yet specified;";
 
 
 	private static DefinitionList operationDefs(String className ,DefinitionList members)
@@ -121,7 +128,8 @@ public class SystemDefinition extends ClassDefinition
 			{
 				ExplicitOperationDefinition edef = (ExplicitOperationDefinition)d;
 
-				if(edef.name.name.equals("connectToBus") || edef.name.name.equals("disconnectFromBus") || edef.name.name.equals("migrate"))
+				if(edef.name.name.equals("connect") || edef.name.name.equals("disconnect") || 
+						edef.name.name.equals("migrate") || edef.name.name.equals("addConstituent"))
 				{
 					continue;
 				}
@@ -285,14 +293,14 @@ public class SystemDefinition extends ClassDefinition
 		return null;
 	}
 	
-	public static Value connectToBus(Context ctxt)
+	public static Value connect(Context ctxt)
 	{
 		try
 		{
-    		ObjectValue obj = (ObjectValue)ctxt.lookup(new LexNameToken(systemClassName, "obj", new LexLocation()));
-    		BUSValue bus  = (BUSValue)ctxt.check(new LexNameToken(systemClassName, "bus", new LexLocation()));;
+    		CPUValue cpu = (CPUValue)ctxt.lookup(new LexNameToken(systemClassName, "system", new LexLocation()));
+    		BUSValue bus  = (BUSValue)ctxt.check(new LexNameToken(systemClassName, "channel", new LexLocation()));;
     		
-    		BUSValue.connectObjToBUS(obj, bus);
+    		BUSValue.connectCPUToBUS(cpu, bus);
 
   			return new VoidValue();
 		}
@@ -304,11 +312,28 @@ public class SystemDefinition extends ClassDefinition
 	
 	public static Value disconnectFromBus(Context ctxt)
 	{
-		ObjectValue obj = (ObjectValue)ctxt.lookup(new LexNameToken(systemClassName, "obj", new LexLocation()));
-		BUSValue bus  = (BUSValue)ctxt.check(new LexNameToken(systemClassName, "bus", new LexLocation()));;
-		BUSValue.disconnectObjFromBUS(obj, bus);
+		CPUValue obj = (CPUValue)ctxt.lookup(new LexNameToken(systemClassName, "system", new LexLocation()));
+		BUSValue bus  = (BUSValue)ctxt.check(new LexNameToken(systemClassName, "channel", new LexLocation()));;
+		BUSValue.disconnectCPUFromBUS(obj, bus);
 
 		return new VoidValue();
+	}
+	
+	public static Value addConstituent(Context ctxt)  {
+		
+		RealValue speed = (RealValue)ctxt.lookup(new LexNameToken(systemClassName, "speed", new LexLocation()));
+
+		ValueList args = new ValueList();
+		args.add(speed);			// Default speed
+
+		//create new cpu from ConstituentClassDefinition
+		CPUValue newCPU = (CPUValue)constituentClsDefInstance.newInstance(null, args, systemContext);
+		newCPU.setup(Interpreter.getInstance().scheduler, "addedConstituent" + constituentNumber++);
+		
+		//add to CPU map
+		BUSValue.connectCPUToVirtualBUS(newCPU);
+	
+		return newCPU;
 	}
 	
 	public static Value migrate(Context ctxt)

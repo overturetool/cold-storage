@@ -136,7 +136,7 @@ public class CallObjectStatement extends Statement
 		// Special code for the deploy method of CPU
 
 		if (Settings.dialect == Dialect.VDM_RT &&
-			classname.equals("CPU") && field.name.equals("deploy"))
+			(classname.equals("CPU") || classname.equals("Constituent")) && field.name.equals("deploy"))
 		{
 			if (!atypes.get(0).isType(ClassType.class))
 			{

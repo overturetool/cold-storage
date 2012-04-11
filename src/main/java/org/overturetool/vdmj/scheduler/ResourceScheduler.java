@@ -36,6 +36,7 @@ public class ResourceScheduler implements Serializable
 
 	public String name = "scheduler";
 	protected List<Resource> resources = new LinkedList<Resource>();
+	protected List<Resource> dynamicAddedResources = new LinkedList<Resource>();
 	protected static boolean stopping = false;
 	protected static MainThread mainThread = null;
 
@@ -60,7 +61,16 @@ public class ResourceScheduler implements Serializable
 
 	public void register(Resource resource)
 	{
-		resources.add(resource);
+		//if were are running, we can not add directly to resources. 
+		if(mainThread == null)
+		{
+			resources.add(resource);
+		} 
+		else 
+		{
+			dynamicAddedResources.add(resource);
+		}
+		
 		resource.setScheduler(this);
 	}
 
@@ -83,6 +93,13 @@ public class ResourceScheduler implements Serializable
 			long minstep = Long.MAX_VALUE;
 			idle = true;
 
+			//if new resources have been dynamically added, include them in resources list 
+			if(!dynamicAddedResources.isEmpty()) 
+			{
+				resources.addAll(dynamicAddedResources);
+				dynamicAddedResources.clear();
+			}
+			
 			for (Resource resource: resources)
 			{
 				if (resource.reschedule())
