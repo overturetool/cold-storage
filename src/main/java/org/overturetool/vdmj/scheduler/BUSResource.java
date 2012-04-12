@@ -28,11 +28,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
 import org.overturetool.vdmj.messages.RTLogger;
 import org.overturetool.vdmj.runtime.ExitException;
 import org.overturetool.vdmj.values.BUSValue;
-import org.overturetool.vdmj.values.CPUValue;
 import org.overturetool.vdmj.values.ObjectValue;
 import org.overturetool.vdmj.values.QuoteValue;
 
@@ -297,22 +295,22 @@ public class BUSResource extends Resource
 		return speed;		
 	}
 	
-	public boolean addCPU(CPUValue newCPU)
+	public boolean addCPU(CPUResource newCPUres)
 	{
-		if(!cpus.contains(newCPU.resource))
+		if(!cpus.contains(newCPUres))
 		{
-			cpus.add(newCPU.resource);
+			cpus.add(newCPUres);
 			return true;
 		}
 
 		return false;
 	}
 	
-	public void removeCPU(CPUValue cpu)
+	public void removeCPU(CPUResource cpu)
 	{
-		if(cpus.contains(cpu.resource))
+		if(cpus.contains(cpu))
 		{
-			cpus.remove(cpu.resource);
+			cpus.remove(cpu);
 		}
 	}
 	
@@ -321,12 +319,12 @@ public class BUSResource extends Resource
 		return cpus;	
 	}
 	
-	public boolean isConnectedTo(CPUValue cpu)
+	public boolean isConnectedTo(CPUResource cpu)
 	{
-		return cpus.contains(cpu.resource);
+		return cpus.contains(cpu);
 	}
 	
-	public void RemoveMessages(CPUValue cpu)
+	public void RemoveMessages(CPUResource removeCpuRes)
 	{
 		if(messages.isEmpty())
 		{
@@ -341,7 +339,7 @@ public class BUSResource extends Resource
 		{			
 			m = messages.get(i);
 
-			if(m.to.equals(cpu) || m.from.equals(cpu))
+			if(m.to.resource.equals(removeCpuRes) || m.from.resource.equals(removeCpuRes))
 			{
 				if(m.replyTo != null)
 				{
@@ -379,7 +377,7 @@ public class BUSResource extends Resource
 				//both processing occurring on the disconnected CPU and 
 				//on others CPUs on behalf of the disconnect CPU will
 				//not be able to deliver the result.
-				if(mp.from.equals(cpu) || mp.to.equals(cpu))
+				if(mp.from.resource.equals(removeCpuRes) || mp.to.resource.equals(removeCpuRes))
 				{
 					discardResponse.add(mp.msgId);
 				}

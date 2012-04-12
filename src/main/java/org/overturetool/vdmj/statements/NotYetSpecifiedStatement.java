@@ -153,29 +153,29 @@ public class NotYetSpecifiedStatement extends Statement
 			ClassContext clsCtxt = (ClassContext)ctxt;
 			if(clsCtxt.classdef instanceof SystemDefinition)
 			{
-				if(ctxt.title.equals("connect(system, channel)"))
+				if(ctxt.title.equals("connect(constituent, channel)"))
 				{
 					return SystemDefinition.connect(ctxt);
 				}
-				else if(ctxt.title.equals("disconnect(system, channel)"))
+				else if(ctxt.title.equals("disconnect(constituent, channel)"))
 				{
-					return SystemDefinition.disconnectFromBus(ctxt);
+					return SystemDefinition.disconnect(ctxt);
 				}
 				else if(ctxt.title.equals("addConstituent(speed)"))
 				{
 					return SystemDefinition.addConstituent(ctxt);
 				}
-				else if(ctxt.title.equals("removeConstituent(system)"))
+				else if(ctxt.title.equals("removeConstituent(constituent)"))
 				{
-					return SystemDefinition.migrate(ctxt);
+					return SystemDefinition.removeConstituent(ctxt);
 				}
-				else if(ctxt.title.equals("addChannel(capacity, systems)"))
+				else if(ctxt.title.equals("addChannel(speed, constituents)"))
 				{
-					return SystemDefinition.migrate(ctxt);
+					return SystemDefinition.addChannel(ctxt);
 				}
 				else if(ctxt.title.equals("removeChannel(channel)"))
 				{
-					return SystemDefinition.migrate(ctxt);
+					return SystemDefinition.removeChannel(ctxt);
 				}
 			}
 		}

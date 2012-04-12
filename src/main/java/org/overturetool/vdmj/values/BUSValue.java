@@ -27,7 +27,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
-
 import org.overturetool.vdmj.runtime.Context;
 import org.overturetool.vdmj.scheduler.BUSConnection;
 import org.overturetool.vdmj.scheduler.BusThread;
@@ -48,6 +47,7 @@ public class BUSValue extends ObjectValue
 	
 	public static BUSValue vBUS = null;
 	public final BUSResource resource;
+	private boolean terminated;
 	
 	public BUSValue(ClassType classtype, NameValuePairMap map, ValueList argvals)
 	{
@@ -70,7 +70,8 @@ public class BUSValue extends ObjectValue
 
 		resource = new BUSResource(false, policy, speed, cpulist);
 		busses.add(this);
-		
+	
+		terminated = false;
 	}
 
 	public BUSValue(ClassType type, ValueSet cpus)
@@ -195,78 +196,95 @@ public class BUSValue extends ObjectValue
 
 	public static BUSValue lookupBUS(CPUValue from, CPUValue to)
 	{
-		return cpumap.get(from.resource).get(to.resource).fastest();
+		if(cpumap.containsKey(from.resource) && cpumap.get(from.resource).containsKey(to.resource))
+		{
+			return cpumap.get(from.resource).get(to.resource).fastest();
+		}
+		
+		return null;
 	}
 	
 	public static void connectCPUToBUS(CPUValue newCPU, BUSValue bus)
 	{
 		BUSResource busRes = bus.resource;
+		CPUResource newCpuRes = newCPU.resource;
 		 
 		//vCPU is always connected
-		if(newCPU == CPUValue.vCPU)  return;
+		if(newCPU.isVirtual())  return;
 		
 		//only map if cpu is not connected to the bus already. 
-		if(busRes.addCPU(newCPU))
+		if(busRes.addCPU(newCpuRes))
 		{
 			for(CPUResource cpuRes : busRes.getCPUs())
 			{
 				//don't map to self
-				if(cpuRes == newCPU.resource) continue;
+				if(cpuRes == newCpuRes) continue;
 				
 				//BusConnection object might need to be added if the CPU was added dynamically. 
-				if(cpumap.get(newCPU.resource).containsKey(cpuRes))
+				if(cpumap.get(newCpuRes).containsKey(cpuRes))
 				{
-					cpumap.get(newCPU.resource).get(cpuRes).add(bus);
+					cpumap.get(newCpuRes).get(cpuRes).add(bus);
 				}
 				else
 				{
-					cpumap.get(newCPU.resource).put(cpuRes, new BUSConnection(bus));
+					cpumap.get(newCpuRes).put(cpuRes, new BUSConnection(bus));
 				}
 				
-				
-				if(cpumap.get(cpuRes).containsKey(newCPU.resource))
+				if(cpumap.get(cpuRes).containsKey(newCpuRes))
 				{
-					cpumap.get(cpuRes).get(newCPU.resource).add(bus);
+					cpumap.get(cpuRes).get(newCpuRes).add(bus);
 				}
 				else
 				{
-					cpumap.get(cpuRes).put(newCPU.resource, new BUSConnection(bus));
+					cpumap.get(cpuRes).put(newCpuRes, new BUSConnection(bus));
 				}
 			}
 		}
 	}
 	
-	public static void disconnectCPUFromBUS(CPUValue removeCPU, BUSValue bus)
+	public static void disconnectCPUFromBUS(CPUResource removeCpuRes, BUSValue bus)
 	{
 		BUSResource busRes = bus.resource;
 		
 		//vCPU is always connected
-		if(removeCPU == CPUValue.vCPU)  return;
+		if(removeCpuRes.isVirtual())  return;
 		
-		if(busRes.isConnectedTo(removeCPU))
+		//vBUS is always connected
+		if(bus.isVirtual()) return;
+		
+		if(busRes.isConnectedTo(removeCpuRes))
 		{
-			busRes.removeCPU(removeCPU);
+			busRes.removeCPU(removeCpuRes);
 			
 			for(CPUResource cpuRes : busRes.getCPUs())
 			{
-				cpumap.get(removeCPU.resource).get(cpuRes).remove(bus);
-				cpumap.get(cpuRes).get(removeCPU.resource).remove(bus);
+				cpumap.get(removeCpuRes).get(cpuRes).remove(bus);
+				cpumap.get(cpuRes).get(removeCpuRes).remove(bus);
 			}
 			
-			busRes.RemoveMessages(removeCPU);
+			busRes.RemoveMessages(removeCpuRes);
 		}
 	}
+	
+	public static void disconnectCPUFromAllBusses(CPUValue cpu)
+	{
+		for (BUSValue bus : busses) {
+			disconnectCPUFromBUS(cpu.resource, bus);
+		}	
+	}
+	
 	
 	public static void connectCPUToVirtualBUS(CPUValue newCPU)
 	{
 		BUSResource busRes = vBUS.resource;
+		CPUResource newCpuRes = newCPU.resource;
 		 
 		//only map if cpu is not connected to the bus already. 
-		if(busRes.addCPU(newCPU))
+		if(busRes.addCPU(newCpuRes))
 		{
-			cpumap.get(CPUValue.vCPU.resource).put(newCPU.resource, new BUSConnection(vBUS));
-			cpumap.put(newCPU.resource, new HashMap<CPUResource,BUSConnection>());
-			cpumap.get(newCPU.resource).put(CPUValue.vCPU.resource, new BUSConnection(vBUS));
+			cpumap.get(CPUValue.vCPU.resource).put(newCpuRes, new BUSConnection(vBUS));
+			cpumap.put(newCpuRes, new HashMap<CPUResource,BUSConnection>());
+			cpumap.get(newCpuRes).put(CPUValue.vCPU.resource, new BUSConnection(vBUS));
 		}
 	}
 	
@@ -277,5 +295,19 @@ public class BUSValue extends ObjectValue
 			if(bus.isVirtual()) continue;
 			bus.resource.migrateMessages(migratingObj, targetBus);
 		}
+	}
+
+	public void terminate() 
+	{
+		if(!terminated)
+		{
+			terminated = true;
+			resource.reset();
+		}
+	}
+
+	public boolean isTerminated() 
+	{
+		return terminated;
 	}
 }

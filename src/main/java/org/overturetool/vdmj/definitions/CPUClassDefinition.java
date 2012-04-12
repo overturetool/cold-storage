@@ -103,6 +103,11 @@ public class CPUClassDefinition extends ClassDefinition
     		ObjectValue obj = (ObjectValue)octxt.lookup(varName("obj"));
     		CPUValue oldcpu = obj.getCPU();
     		
+    		if(cpu.isTerminated())
+    		{
+    			throw new ContextException(4136, "Cannot deploy to CPU: CPU has been removed from the system.", ctxt.location, ctxt);
+    		}
+    		
     		obj.redeploy(cpu);
     		oldcpu.undeploy(obj); 	//object will no longer be deployed on the old cpu
     		cpu.deploy(obj);
@@ -111,7 +116,7 @@ public class CPUClassDefinition extends ClassDefinition
 		}
 		catch (Exception e)
 		{
-			throw new ContextException(4136, "Cannot deploy to CPU", ctxt.location, ctxt);
+			throw new ContextException(4136, "Cannot deploy to CPU: " + e.toString(), ctxt.location, ctxt);
 		}
 	}
 

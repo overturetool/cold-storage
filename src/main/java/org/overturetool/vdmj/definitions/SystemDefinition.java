@@ -36,12 +36,13 @@ import org.overturetool.vdmj.lex.LexNameList;
 import org.overturetool.vdmj.lex.LexNameToken;
 import org.overturetool.vdmj.lex.LexTokenReader;
 import org.overturetool.vdmj.messages.RTLogger;
-import org.overturetool.vdmj.runtime.ClassInterpreter;
 import org.overturetool.vdmj.runtime.Context;
 import org.overturetool.vdmj.runtime.ContextException;
 import org.overturetool.vdmj.runtime.Interpreter;
 import org.overturetool.vdmj.runtime.StateContext;
 import org.overturetool.vdmj.runtime.ValueException;
+import org.overturetool.vdmj.scheduler.BUSResource;
+import org.overturetool.vdmj.scheduler.BusThread;
 import org.overturetool.vdmj.scheduler.ISchedulableThread;
 import org.overturetool.vdmj.scheduler.ResourceScheduler;
 import org.overturetool.vdmj.scheduler.SchedulingPolicy;
@@ -57,6 +58,7 @@ import org.overturetool.vdmj.values.CPUValue;
 import org.overturetool.vdmj.values.ObjectValue;
 import org.overturetool.vdmj.values.QuoteValue;
 import org.overturetool.vdmj.values.RealValue;
+import org.overturetool.vdmj.values.SetValue;
 import org.overturetool.vdmj.values.UpdatableValue;
 import org.overturetool.vdmj.values.Value;
 import org.overturetool.vdmj.values.ValueList;
@@ -71,8 +73,8 @@ public class SystemDefinition extends ClassDefinition
 
 	public static String systemClassName = "undefined";
 	
-	private static int constituentNumber = 1;
-	public static ConstituentClassDefinition constituentClsDefInstance = null;
+	private static int addedConstituentCount = 1;
+	private static int addedBusCount = 1;
 	
 	public SystemDefinition(LexNameToken className, DefinitionList members) throws ParserException, LexException
 	{
@@ -83,13 +85,19 @@ public class SystemDefinition extends ClassDefinition
 	private static String defs =
 		"operations " +
 		"public static connect: Constituent * Channel ==> () " +
-		"	connect(system, channel) == is not yet specified; " +
+		"	connect(constituent, channel) == is not yet specified; " +
 		"public static disconnect: Constituent * Channel ==> () " +
-		"	disconnect(system, channel) == is not yet specified; " +
+		"	disconnect(constituent, channel) == is not yet specified; " +
 		"public static migrate: ? * ?  ==> () " +
 		"	migrate(obj, cpu) == is not yet specified;" +
 		"public static addConstituent : real ==> Constituent " +
-			"addConstituent(speed) == is not yet specified;";
+			"addConstituent(speed) == is not yet specified;" +
+		"public static removeConstituent : Constituent ==> () " +
+			"removeConstituent(constituent) == is not yet specified;" +
+		"public static addChannel : real * set of Constituent  ==> Channel " +
+		"	addChannel(speed, constituents) == is not yet specified;" + 
+		"public static removeChannel : Channel ==> () " +
+		"	removeChannel(channel) == is not yet specified;";
 
 
 	private static DefinitionList operationDefs(String className ,DefinitionList members)
@@ -129,7 +137,9 @@ public class SystemDefinition extends ClassDefinition
 				ExplicitOperationDefinition edef = (ExplicitOperationDefinition)d;
 
 				if(edef.name.name.equals("connect") || edef.name.name.equals("disconnect") || 
-						edef.name.name.equals("migrate") || edef.name.name.equals("addConstituent"))
+						edef.name.name.equals("migrate") || edef.name.name.equals("addConstituent") || 
+						edef.name.name.equals("removeConstituent") || edef.name.name.equals("addChannel") || 
+						edef.name.name.equals("removeChannel"))
 				{
 					continue;
 				}
@@ -297,24 +307,34 @@ public class SystemDefinition extends ClassDefinition
 	{
 		try
 		{
-    		CPUValue cpu = (CPUValue)ctxt.lookup(new LexNameToken(systemClassName, "system", new LexLocation()));
-    		BUSValue bus  = (BUSValue)ctxt.check(new LexNameToken(systemClassName, "channel", new LexLocation()));;
+    		CPUValue cpu = (CPUValue)ctxt.lookup(new LexNameToken(systemClassName, "constituent", new LexLocation()));
+    		BUSValue channel  = (BUSValue)ctxt.check(new LexNameToken(systemClassName, "channel", new LexLocation()));;
     		
-    		BUSValue.connectCPUToBUS(cpu, bus);
+    		if(channel.isTerminated())
+    		{
+    			throw new ContextException(4136, "Channel has been removed from the system.", ctxt.location, ctxt); //TODO error code?
+    		}
+    		
+    		BUSValue.connectCPUToBUS(cpu, channel);
 
   			return new VoidValue();
 		}
 		catch (Exception e)
 		{
-			throw new ContextException(9999, "Cannot connect to CPU", ctxt.location, ctxt); //TODO error code?
+			throw new ContextException(9999, "Cannot connect to Channel: " + e.toString(), ctxt.location, ctxt); //TODO error code?
 		}
 	}
 	
-	public static Value disconnectFromBus(Context ctxt)
+	public static Value disconnect(Context ctxt)
 	{
-		CPUValue obj = (CPUValue)ctxt.lookup(new LexNameToken(systemClassName, "system", new LexLocation()));
+		CPUValue constituent = (CPUValue)ctxt.lookup(new LexNameToken(systemClassName, "constituent", new LexLocation()));
 		BUSValue bus  = (BUSValue)ctxt.check(new LexNameToken(systemClassName, "channel", new LexLocation()));;
-		BUSValue.disconnectCPUFromBUS(obj, bus);
+		
+		if(bus.isTerminated())
+		{
+			throw new ContextException(4136, "Cannot disconnect from channel. Channel has been removed from the system.", ctxt.location, ctxt); //TODO error code?
+		}
+		BUSValue.disconnectCPUFromBUS(constituent.resource, bus);
 
 		return new VoidValue();
 	}
@@ -324,16 +344,84 @@ public class SystemDefinition extends ClassDefinition
 		RealValue speed = (RealValue)ctxt.lookup(new LexNameToken(systemClassName, "speed", new LexLocation()));
 
 		ValueList args = new ValueList();
-		args.add(speed);			// Default speed
+		args.add(speed);		
 
 		//create new cpu from ConstituentClassDefinition
-		CPUValue newCPU = (CPUValue)constituentClsDefInstance.newInstance(null, args, systemContext);
-		newCPU.setup(Interpreter.getInstance().scheduler, "addedConstituent" + constituentNumber++);
+		CPUValue newCPU = (CPUValue)ConstituentClassDefinition.instance.newInstance(null, args, systemContext);
+		newCPU.setup(Interpreter.getInstance().scheduler, "dynamicConstituent" + addedConstituentCount++);
 		
 		//add to CPU map
 		BUSValue.connectCPUToVirtualBUS(newCPU);
 	
 		return newCPU;
+	}
+	
+	public static Value removeConstituent(Context ctxt) 
+	{
+		CPUValue constituent = (CPUValue)ctxt.check(new LexNameToken(systemClassName, "constituent", new LexLocation()));;
+		
+		if(constituent.isTerminated())
+		{
+			throw new ContextException(9999, "Cannot remove constituent. Constituent has already been removed from the system.", ctxt.location, ctxt); //TODO error code?
+		}
+		
+		//stop execution
+		constituent.terminate();
+		
+		//find all busses
+		BUSValue.disconnectCPUFromAllBusses(constituent);
+		
+		return new VoidValue();
+	}
+	
+	public static Value addChannel(Context ctxt) {
+		
+		RealValue speed = (RealValue)ctxt.lookup(new LexNameToken(systemClassName, "speed", new LexLocation()));
+		SetValue constituents = (SetValue)ctxt.lookup(new LexNameToken(systemClassName, "constituents", new LexLocation()));
+		
+		ValueList args = new ValueList();
+		args.add(speed);		
+		args.add(constituents);
+
+		BUSValue newBUS = (BUSValue)ChannelClassDefinition.instance.newInstance(null, args, systemContext);
+		newBUS.setup(Interpreter.getInstance().scheduler, "dynamicBus" + addedBusCount++);
+		
+		//start bus
+		new BusThread(newBUS.resource, 0).start();
+		
+		return newBUS;
+	}
+	
+	public static Value removeChannel(Context ctxt) {
+		
+		BUSValue channel = (BUSValue)ctxt.lookup(new LexNameToken(systemClassName, "channel", new LexLocation()));
+		
+		if(channel.isTerminated())
+		{
+			throw new ContextException(9999, "Cannot remove channel. Channel has already been removed from the system.", ctxt.location, ctxt); //TODO error code?
+		}
+		
+		//stop processing 
+		channel.terminate();
+		
+		//get attached cpus
+		BUSResource busRes = channel.resource;
+		
+		
+		for (int i = 0; i < busRes.getCPUs().size(); i++) {
+			BUSValue.disconnectCPUFromBUS(busRes.getCPUs().get(i), channel);
+		}
+		
+//		for (Iterator<CPUResource> iterator = busRes.getCPUs().iterator(); iterator.hasNext();) {
+//			BUSValue.disconnectCPUFromBUS(iterator.next(), channel);
+//			iterator.remove();
+//		}
+		
+//		for(CPUResource c : busRes.getCPUs()){	
+//			BUSValue.disconnectCPUFromBUS(c, channel);
+//		}
+		
+		return new VoidValue();
 	}
 	
 	public static Value migrate(Context ctxt)
@@ -376,7 +464,8 @@ public class SystemDefinition extends ClassDefinition
 		return new VoidValue();
 	}
 
-	public static void redeploy(ObjectValue obj, CPUValue cpuTarget) {
+	public static void redeploy(ObjectValue obj, CPUValue cpuTarget) 
+	{
 		//relocate object to CPU
 		obj.getCPU().undeploy(obj); 	//object will no longer be deployed on the old cpu
 		obj.redeploy(cpuTarget);

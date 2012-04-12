@@ -39,6 +39,7 @@ public class CPUValue extends ObjectValue
 	private static final long serialVersionUID = 1L;
 	public final CPUResource resource;
 	private final List<ObjectValue> deployed;
+	private boolean terminated;
 	public static CPUValue vCPU;
 
 	public CPUValue(ClassType classtype, NameValuePairMap map, ValueList argvals)
@@ -51,6 +52,7 @@ public class CPUValue extends ObjectValue
 
 		resource = new CPUResource(cpup, sarg.value);
 		deployed = new Vector<ObjectValue>();
+		terminated = false;
 	}
 
 	public CPUValue(ClassType classtype)	// for virtual CPUs
@@ -66,7 +68,7 @@ public class CPUValue extends ObjectValue
 		resource.setName(name);
 	}
 
-	public void deploy(ObjectValue obj)
+	public void deploy(ObjectValue obj) 
 	{
 		resource.deploy(obj);
 		deployed.add(obj);
@@ -146,5 +148,18 @@ public class CPUValue extends ObjectValue
 		{
 			// Parse/lex of built-in ops. Can't happen.
 		}
+	}
+
+	public void terminate() {
+		
+		if(!terminated)
+		{
+			terminated = true;
+			resource.reset();
+		}
+	}
+
+	public boolean isTerminated() {
+		return terminated;
 	}
 }

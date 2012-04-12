@@ -26,12 +26,14 @@ import org.overturetool.vdmj.values.VoidValue;
 public class ConstituentClassDefinition extends CPUClassDefinition 
 {
 	private static final long serialVersionUID = 1L;
+	public static ConstituentClassDefinition instance = null;
 	
 	public ConstituentClassDefinition() throws ParserException, LexException
 	{
 		super(
 			new LexNameToken("CLASS", "Constituent", new LexLocation()),
 			new LexNameList(), operationDefs());
+		instance = this;
 	}
 	
 	private static String defs =
@@ -76,6 +78,11 @@ public class ConstituentClassDefinition extends CPUClassDefinition
     		ObjectValue obj = (ObjectValue)octxt.lookup(varName("obj"));
     		CPUValue oldcpu = obj.getCPU();
     		
+    		if(cpu.isTerminated())
+    		{
+    			throw new ContextException(4136, "Cannot deploy to Constituent: Constituent has been removed from the system.", ctxt.location, ctxt);
+    		}
+    		
     		obj.redeploy(cpu);
     		oldcpu.undeploy(obj); 	//object will no longer be deployed on the old cpu
     		cpu.deploy(obj);
@@ -84,7 +91,7 @@ public class ConstituentClassDefinition extends CPUClassDefinition
 		}
 		catch (Exception e)
 		{
-			throw new ContextException(4136, "Cannot deploy to Constituent", ctxt.location, ctxt);
+			throw new ContextException(4136, "Cannot deploy to Constituent: " + e.toString(), ctxt.location, ctxt);
 		}
 	}
 
