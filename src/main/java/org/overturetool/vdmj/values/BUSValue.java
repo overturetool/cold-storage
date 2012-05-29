@@ -60,15 +60,32 @@ public class BUSValue extends ObjectValue
 		double speed = sarg.value;
 
 		SetValue set = (SetValue)argvals.get(2);
-		List<CPUResource> cpulist = new Vector<CPUResource>();
-
+		List<CPUResource> cpuResList = new Vector<CPUResource>();
+		List<CPUValue> cpulist = new Vector<CPUValue>();
+		
 		for (Value v: set.values)
 		{
 			CPUValue cpuv = (CPUValue)v.deref();
-			cpulist.add(cpuv.resource);
+			cpuResList.add(cpuv.resource);
+			cpulist.add(cpuv);
 		}
-
-		resource = new BUSResource(false, policy, speed, cpulist);
+		
+		//cpu map not initialized, let createMap do the work during initialization, and only add the resource
+		if(cpumap == null)
+		{
+			resource = new BUSResource(false, policy, speed, cpuResList);
+		} 
+		else
+		{
+			//cpumap already initialized, we need to add the bus and connected cpus to the map and resource manually. 
+			resource = new BUSResource(false, policy, speed, new Vector<CPUResource>());
+			
+			for(CPUValue v : cpulist)
+			{
+				BUSValue.connectCPUToBUS(v, this);
+			}
+		}
+		
 		busses.add(this);
 	
 		terminated = false;

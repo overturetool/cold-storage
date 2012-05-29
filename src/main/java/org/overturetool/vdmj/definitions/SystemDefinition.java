@@ -412,15 +412,6 @@ public class SystemDefinition extends ClassDefinition
 			BUSValue.disconnectCPUFromBUS(busRes.getCPUs().get(i), channel);
 		}
 		
-//		for (Iterator<CPUResource> iterator = busRes.getCPUs().iterator(); iterator.hasNext();) {
-//			BUSValue.disconnectCPUFromBUS(iterator.next(), channel);
-//			iterator.remove();
-//		}
-		
-//		for(CPUResource c : busRes.getCPUs()){	
-//			BUSValue.disconnectCPUFromBUS(c, channel);
-//		}
-		
 		return new VoidValue();
 	}
 	
