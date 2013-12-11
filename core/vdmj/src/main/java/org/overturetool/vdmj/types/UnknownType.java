@@ -88,6 +88,12 @@ public class UnknownType extends Type
 	}
 
 	@Override
+	public boolean isTag()
+	{
+		return true;
+	}
+
+	@Override
 	public boolean isClass()
 	{
 		return true;		// Too much trouble?

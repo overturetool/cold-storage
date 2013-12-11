@@ -47,6 +47,7 @@ import org.overturetool.vdmj.types.NamedType;
 import org.overturetool.vdmj.types.RecordType;
 import org.overturetool.vdmj.types.Type;
 import org.overturetool.vdmj.types.TypeList;
+import org.overturetool.vdmj.types.UnionType;
 import org.overturetool.vdmj.types.UnresolvedType;
 import org.overturetool.vdmj.values.FunctionValue;
 import org.overturetool.vdmj.values.NameValuePair;
@@ -65,6 +66,7 @@ public class TypeDefinition extends Definition
 	public final Expression invExpression;
 	public ExplicitFunctionDefinition invdef;
 	public boolean infinite = false;
+	private DefinitionList composeDefinitions;
 
 	public TypeDefinition(LexNameToken name, InvariantType type, Pattern invPattern,
 		Expression invExpression)
@@ -76,6 +78,7 @@ public class TypeDefinition extends Definition
 		this.invExpression = invExpression;
 		
 		type.definitions = new DefinitionList(this);
+		composeDefinitions = new DefinitionList();
 	}
 
 	@Override
@@ -98,6 +101,39 @@ public class TypeDefinition extends Definition
 		else
 		{
 			invdef = null;
+		}
+		
+		addComposeDefinitions();
+	}
+	
+	/**
+	 * Type definitions of the form "A = compose B of ... end" also define the type
+	 * B, which can be used globally.
+	 */
+	private void addComposeDefinitions()
+	{
+		if (type instanceof NamedType)
+		{
+			NamedType nt = (NamedType)type;
+
+			if (nt.type instanceof RecordType)
+			{
+				RecordType rt = (RecordType)nt.type;
+				composeDefinitions.add(new TypeDefinition(rt.name, rt, null, null));
+			}
+			else if (nt.type instanceof UnionType)
+			{
+				UnionType ut = (UnionType)nt.type;
+				
+				for (Type t: ut.types)
+				{
+					if (t instanceof RecordType)
+					{
+						RecordType rt = (RecordType)t;
+						composeDefinitions.add(new TypeDefinition(rt.name, rt, null, null));
+					}
+				}
+			}
 		}
 	}
 
@@ -183,21 +219,13 @@ public class TypeDefinition extends Definition
 	@Override
 	public Definition findType(LexNameToken sought, String fromModule)
 	{
-		if (type instanceof NamedType)
+		Definition d = composeDefinitions.findType(sought, fromModule);
+		
+		if (d != null)
 		{
-			NamedType nt = (NamedType)type;
-
-			if (nt.type instanceof RecordType)
-			{
-				RecordType rt = (RecordType)nt.type;
-
-				if (rt.name.equals(sought))
-				{
-					return this;	// T1 = compose T2 x:int end;
-				}
-			}
+			return d;
 		}
-
+		
 		return super.findName(sought, NameScope.TYPENAME);
 	}
 
@@ -217,6 +245,7 @@ public class TypeDefinition extends Definition
 	public DefinitionList getDefinitions()
 	{
 		DefinitionList defs = new DefinitionList(this);
+		defs.addAll(composeDefinitions);
 
 		if (invdef != null)
 		{

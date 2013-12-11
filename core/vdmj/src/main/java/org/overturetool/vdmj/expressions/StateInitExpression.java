@@ -102,7 +102,7 @@ public class StateInitExpression extends Expression
 			{
 				Type rhs = ee.right.typeCheck(env, null, scope);
 
-				if (rhs.isRecord())
+				if (rhs.isTag())
 				{
 					RecordType rt = rhs.getRecord();
 					canBeExecuted = rt.name.equals(state.name);

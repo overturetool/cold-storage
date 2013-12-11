@@ -126,6 +126,12 @@ public class BracketType extends Type
 	}
 
 	@Override
+	public boolean isTag()
+	{
+		return type.isTag();
+	}
+
+	@Override
 	public boolean isNumeric()
 	{
 		return type.isNumeric();

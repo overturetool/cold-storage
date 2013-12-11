@@ -124,6 +124,12 @@ public class NamedType extends InvariantType
 	}
 
 	@Override
+	public boolean isTag()
+	{
+		return false;
+	}
+
+	@Override
 	public boolean isClass()
 	{
 		if (opaque) return false;

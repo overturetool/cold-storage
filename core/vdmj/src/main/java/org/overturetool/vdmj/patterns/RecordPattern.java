@@ -118,7 +118,7 @@ public class RecordPattern extends Pattern
 	{
 		DefinitionList defs = new DefinitionList();
 
-		if (!type.isRecord())
+		if (!type.isTag())
 		{
 			report(3200, "Mk_ expression is not a record type");
 			detail("Type", type);

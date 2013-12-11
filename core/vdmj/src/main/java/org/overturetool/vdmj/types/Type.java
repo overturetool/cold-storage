@@ -241,7 +241,12 @@ public abstract class Type implements Comparable<Type>, Serializable, IAstNode
 		return false;
 	}
 
-	public boolean isRecord()
+	public boolean isRecord()	// ie. does it contain fields (see isTag)
+	{
+		return false;
+	}
+
+	public boolean isTag()		// ie. can we call mk_T (see isRecord)
 	{
 		return false;
 	}

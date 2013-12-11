@@ -38,7 +38,6 @@ import org.overturetool.vdmj.typechecker.Environment;
 import org.overturetool.vdmj.typechecker.NameScope;
 import org.overturetool.vdmj.typechecker.TypeComparator;
 import org.overturetool.vdmj.types.Field;
-import org.overturetool.vdmj.types.NamedType;
 import org.overturetool.vdmj.types.RecordType;
 import org.overturetool.vdmj.types.Type;
 import org.overturetool.vdmj.types.TypeList;
@@ -83,12 +82,6 @@ public class MkTypeExpression extends Expression
 		}
 
 		Type rec = typeDef.getType();
-
-		while (rec instanceof NamedType)
-		{
-			NamedType nrec = (NamedType)rec;
-			rec = nrec.type;
-		}
 
 		if (!(rec instanceof RecordType))
 		{

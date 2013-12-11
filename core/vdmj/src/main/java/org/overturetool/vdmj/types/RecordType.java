@@ -97,6 +97,12 @@ public class RecordType extends InvariantType
 	}
 
 	@Override
+	public boolean isTag()
+	{
+		return true;
+	}
+
+	@Override
 	public RecordType getRecord()
 	{
 		return this;

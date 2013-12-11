@@ -207,6 +207,12 @@ public class UnionType extends Type
 	}
 
 	@Override
+	public boolean isTag()
+	{
+		return false;
+	}
+
+	@Override
 	public boolean isClass()
 	{
 		return getClassType() != null;

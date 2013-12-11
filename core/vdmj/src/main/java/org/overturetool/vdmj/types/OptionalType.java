@@ -138,6 +138,12 @@ public class OptionalType extends Type
 	}
 
 	@Override
+	public boolean isTag()
+	{
+		return type.isTag();
+	}
+
+	@Override
 	public boolean isClass()
 	{
 		return type.isClass();
