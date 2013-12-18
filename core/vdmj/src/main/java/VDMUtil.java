@@ -30,6 +30,7 @@ import org.overturetool.vdmj.runtime.Context;
 import org.overturetool.vdmj.runtime.ValueException;
 import org.overturetool.vdmj.syntax.ExpressionReader;
 import org.overturetool.vdmj.values.BooleanValue;
+import org.overturetool.vdmj.values.CharacterValue;
 import org.overturetool.vdmj.values.NilValue;
 import org.overturetool.vdmj.values.ObjectValue;
 import org.overturetool.vdmj.values.SeqValue;
@@ -59,8 +60,16 @@ public class VDMUtil
 
 		try
 		{
-			String expression = arg.toString().replace("\"", "");
-			LexTokenReader ltr = new LexTokenReader(expression, Dialect.VDM_PP);
+			SeqValue seq = (SeqValue) arg;
+			StringBuilder expression = new StringBuilder();
+			
+			for (Value v: seq.values)
+			{
+				CharacterValue ch = (CharacterValue) v;
+				expression.append(ch.unicode);
+			}
+			
+			LexTokenReader ltr = new LexTokenReader(expression.toString(), Dialect.VDM_PP);
 			ExpressionReader reader = new ExpressionReader(ltr);
 			reader.setCurrentModule("VDMUtil");
 			Expression exp = reader.readExpression();
