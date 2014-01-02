@@ -309,7 +309,13 @@ public class ModuleInterpreter extends Interpreter
 	@Override
 	public Context getInitialTraceContext(NamedTraceDefinition tracedef, boolean debug) throws ValueException
 	{
-		return initialContext;
+		Context mainContext = new StateContext(defaultModule.name.location,
+				"module scope",	null, defaultModule.getStateContext());
+
+		mainContext.putAll(initialContext);
+		mainContext.setThreadState(null, CPUValue.vCPU);
+		
+		return mainContext;
 	}
 
 
