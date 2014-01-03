@@ -408,11 +408,17 @@ public class OperationValue extends Value
 
     			// We disable the swapping and time (RT) as postcondition checks should be "free".
 
-				ctxt.threadState.setAtomic(true);
-    			ctxt.setPrepost(4072, "Postcondition failure: ");
-    			postcondition.eval(from, postArgs, ctxt);
-    			ctxt.setPrepost(0, null);
-				ctxt.threadState.setAtomic(false);
+    			try
+    			{
+    				ctxt.threadState.setAtomic(true);
+    				ctxt.setPrepost(4072, "Postcondition failure: ");
+    				postcondition.eval(from, postArgs, ctxt);
+    			}
+    			finally
+    			{
+    				ctxt.setPrepost(0, null);
+    				ctxt.threadState.setAtomic(false);
+    			}
     		}
 		}
 		finally
