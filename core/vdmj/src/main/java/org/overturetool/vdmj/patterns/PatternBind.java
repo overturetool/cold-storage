@@ -91,6 +91,8 @@ public class PatternBind implements Serializable
 			{
 				TypeBind typebind = (TypeBind)bind;
 				typebind.typeResolve(base);
+				
+				TypeComparator.checkComposeTypes(typebind.type, base, false);
 
 				if (!TypeComparator.compatible(typebind.type, type))
 				{

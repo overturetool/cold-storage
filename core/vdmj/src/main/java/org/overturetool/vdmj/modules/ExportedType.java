@@ -82,7 +82,7 @@ public class ExportedType extends Export
 				else if (type instanceof RecordType)
 				{
 					RecordType rtype = (RecordType)type;
-					InvariantType copy = new RecordType(rtype.name, rtype.fields);
+					InvariantType copy = new RecordType(rtype.name, rtype.fields, rtype.composed);
 					copy.setOpaque(true);
 					copy.setInvariant(rtype.invdef);
 					list.add(new TypeDefinition(def.name, copy,	null, null));

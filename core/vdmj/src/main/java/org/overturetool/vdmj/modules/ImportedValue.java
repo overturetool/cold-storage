@@ -86,6 +86,7 @@ public class ImportedValue extends Import
 		if (type != null && from != null)
 		{
 			type = type.typeResolve(env, null);
+			TypeComparator.checkComposeTypes(type, env, false);
 			Definition expdef = from.exportdefs.findName(name, NameScope.NAMES);
 
 			if (expdef != null)

@@ -84,6 +84,7 @@ public class NarrowExpression extends Expression
 		{
 			basictype = basictype.typeResolve(env, null);
 			result = basictype;
+			TypeComparator.checkComposeTypes(basictype, env, false);
 		}
 		else
 		{

@@ -230,6 +230,7 @@ public class ImplicitFunctionDefinition extends Definition
 	public void typeCheck(Environment base, NameScope scope)
 	{
 		DefinitionList defs = new DefinitionList();
+		TypeComparator.checkComposeTypes(type, base, false);
 
 		if (typeParams != null)
 		{

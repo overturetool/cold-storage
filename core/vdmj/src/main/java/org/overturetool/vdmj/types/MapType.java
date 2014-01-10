@@ -177,4 +177,13 @@ public class MapType extends Type
 		
 		return results; 
 	}
+	
+	@Override
+	public TypeList getComposeTypes()
+	{
+		TypeList list = new TypeList();
+		list.addAll(from.getComposeTypes());
+		list.addAll(to.getComposeTypes());
+		return list;
+	}
 }

@@ -162,6 +162,7 @@ public class ExplicitOperationDefinition extends Definition
 	{
 		scope = NameScope.NAMESANDSTATE;
 		TypeList ptypes = type.parameters;
+		TypeComparator.checkComposeTypes(type, base, false);
 
 		if (parameterPatterns.size() > ptypes.size())
 		{

@@ -192,6 +192,7 @@ public class ImplicitOperationDefinition extends Definition
 		scope = NameScope.NAMESANDSTATE;
 		DefinitionList defs = new DefinitionList();
 		DefinitionList argdefs = new DefinitionList();
+		TypeComparator.checkComposeTypes(type, base, false);
 
 		if (base.isVDMPP())
 		{
@@ -226,6 +227,8 @@ public class ImplicitOperationDefinition extends Definition
 		{
     		for (ExternalClause clause: externals)
     		{
+    			TypeComparator.checkComposeTypes(clause.type, base, false);
+    			
     			for (LexNameToken exname: clause.identifiers)
     			{
     				Definition sdef = base.findName(exname, NameScope.STATE);

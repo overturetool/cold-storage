@@ -149,4 +149,10 @@ public class SetType extends Type
 
 		return list;
 	}
+	
+	@Override
+	public TypeList getComposeTypes()
+	{
+		return setof.getComposeTypes();
+	}
 }

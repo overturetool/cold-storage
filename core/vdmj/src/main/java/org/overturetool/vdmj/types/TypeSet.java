@@ -154,4 +154,16 @@ public class TypeSet extends TreeSet<Type>
 
 		return (optional ? new OptionalType(location, result) : result);
 	}
+
+	public TypeList getComposeTypes()
+	{
+		TypeList list = new TypeList();
+		
+		for (Type type: this)
+		{
+			list.addAll(type.getComposeTypes());
+		}
+		
+		return list;
+	}
 }

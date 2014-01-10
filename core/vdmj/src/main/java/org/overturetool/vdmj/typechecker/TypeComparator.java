@@ -25,6 +25,8 @@ package org.overturetool.vdmj.typechecker;
 
 import java.util.Vector;
 
+import org.overturetool.vdmj.definitions.Definition;
+import org.overturetool.vdmj.definitions.TypeDefinition;
 import org.overturetool.vdmj.types.BracketType;
 import org.overturetool.vdmj.types.ClassType;
 import org.overturetool.vdmj.types.FunctionType;
@@ -905,5 +907,63 @@ public class TypeComparator
 		}
 
 		return Result.No;
+	}
+	
+	/**
+	 * Check that the compose types that are referred to in a type have a matching
+	 * definition in the environment. The method returns a list of types that do not
+	 * exist if the newTypes parameter is passed. 
+	 */
+	public static TypeList checkComposeTypes(Type type, Environment env, boolean newTypes)
+	{
+		TypeList undefined = new TypeList();
+		
+		for (Type compose: type.getComposeTypes())
+		{
+			RecordType composeType = (RecordType)compose;
+			Definition existing = env.findType(composeType.name, null);
+			
+			if (existing != null)
+			{
+				// If the type is already defined, check that it has the same shape and
+				// does not have an invariant (which cannot match a compose definition).
+				boolean matches = false;
+				
+				if (existing instanceof TypeDefinition)
+				{
+					TypeDefinition edef = (TypeDefinition)existing;
+					Type etype = existing.getType();
+					
+					if (edef.invExpression == null && etype instanceof RecordType)
+					{
+						RecordType retype = (RecordType)etype;
+						
+						if (retype.fields.equals(composeType.fields))
+						{
+							matches = true;
+						}
+					}
+				}
+					
+				if (!matches)
+				{
+					TypeChecker.report(3325, "Mismatched compose definitions for " + composeType.name, composeType.location);
+					TypeChecker.detail2(composeType.name.name, composeType.location, existing.name.name, existing.location);
+				}
+			}
+			else
+			{
+				if (newTypes)
+				{
+					undefined.add(composeType);
+				}
+				else
+				{
+					TypeChecker.report(3113, "Unknown type name '" + composeType.name + "'", composeType.location);
+				}
+			}
+		}
+		
+		return undefined;
 	}
 }

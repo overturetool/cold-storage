@@ -39,6 +39,7 @@ import org.overturetool.vdmj.typechecker.Environment;
 import org.overturetool.vdmj.typechecker.NameScope;
 import org.overturetool.vdmj.typechecker.Pass;
 import org.overturetool.vdmj.typechecker.TypeCheckException;
+import org.overturetool.vdmj.typechecker.TypeComparator;
 import org.overturetool.vdmj.types.BooleanType;
 import org.overturetool.vdmj.types.Field;
 import org.overturetool.vdmj.types.FunctionType;
@@ -47,7 +48,6 @@ import org.overturetool.vdmj.types.NamedType;
 import org.overturetool.vdmj.types.RecordType;
 import org.overturetool.vdmj.types.Type;
 import org.overturetool.vdmj.types.TypeList;
-import org.overturetool.vdmj.types.UnionType;
 import org.overturetool.vdmj.types.UnresolvedType;
 import org.overturetool.vdmj.values.FunctionValue;
 import org.overturetool.vdmj.values.NameValuePair;
@@ -103,40 +103,23 @@ public class TypeDefinition extends Definition
 			invdef = null;
 		}
 		
-		addComposeDefinitions();
-	}
-	
-	/**
-	 * Type definitions of the form "A = compose B of ... end" also define the type
-	 * B, which can be used globally.
-	 */
-	private void addComposeDefinitions()
-	{
+		// Type definitions of the form "A = compose B of ... end" also define the type
+		// B, which can be used globally. Here, we assume all compose types are legal
+		// but in the typeCheck we check whether they match any existing definitions.
+		
 		if (type instanceof NamedType)
 		{
+			composeDefinitions.clear();
 			NamedType nt = (NamedType)type;
 
-			if (nt.type instanceof RecordType)
+			for (Type compose: nt.type.getComposeTypes())
 			{
-				RecordType rt = (RecordType)nt.type;
-				composeDefinitions.add(new TypeDefinition(rt.name, rt, null, null));
-			}
-			else if (nt.type instanceof UnionType)
-			{
-				UnionType ut = (UnionType)nt.type;
-				
-				for (Type t: ut.types)
-				{
-					if (t instanceof RecordType)
-					{
-						RecordType rt = (RecordType)t;
-						composeDefinitions.add(new TypeDefinition(rt.name, rt, null, null));
-					}
-				}
+				RecordType rtype = (RecordType)compose;
+				composeDefinitions.add(new TypeDefinition(rtype.name, rtype, null, null));
 			}
 		}
 	}
-
+	
 	@Override
 	public void typeResolve(Environment base)
 	{
@@ -155,6 +138,8 @@ public class TypeDefinition extends Definition
 				invdef.typeResolve(base);
 				invPattern.typeResolve(base);
 			}
+			
+			composeDefinitions.typeResolve(base);
 		}
 		catch (TypeCheckException e)
 		{
@@ -169,6 +154,19 @@ public class TypeDefinition extends Definition
 		if (invdef != null)
 		{
 			invdef.typeCheck(base, NameScope.NAMES);
+		}
+		
+		if (type instanceof NamedType)
+		{
+			// Rebuild the compose definitions, after we check whether they already exist
+			composeDefinitions.clear();
+			NamedType nt = (NamedType)type;
+
+			for (Type compose: TypeComparator.checkComposeTypes(nt.type, base, true))
+			{
+				RecordType rtype = (RecordType)compose;
+				composeDefinitions.add(new TypeDefinition(rtype.name, rtype, null, null));
+			}
 		}
 
 		// We have to do the "top level" here, rather than delegating to the types
@@ -219,11 +217,14 @@ public class TypeDefinition extends Definition
 	@Override
 	public Definition findType(LexNameToken sought, String fromModule)
 	{
-		Definition d = composeDefinitions.findType(sought, fromModule);
-		
-		if (d != null)
+		if (composeDefinitions != null)
 		{
-			return d;
+			Definition d = composeDefinitions.findType(sought, fromModule);
+			
+			if (d != null)
+			{
+				return d;
+			}
 		}
 		
 		return super.findName(sought, NameScope.TYPENAME);

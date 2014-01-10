@@ -171,4 +171,10 @@ public class ProductType extends Type
 	{
 		return types.getAllValues(ctxt);
 	}
+	
+	@Override
+	public TypeList getComposeTypes()
+	{
+		return types.getComposeTypes();
+	}
 }

@@ -45,12 +45,14 @@ public class RecordType extends InvariantType
 	private static final long serialVersionUID = 1L;
 	public final LexNameToken name;
 	public final List<Field> fields;
+	public final boolean composed;	// Created via "compose R of ... end"
 
-	public RecordType(LexNameToken name, List<Field> fields)
+	public RecordType(LexNameToken name, List<Field> fields, boolean composed)
 	{
 		super(name.location);
 		this.name = name;
 		this.fields = fields;
+		this.composed = composed;
 	}
 
 	public RecordType(LexLocation location, List<Field> fields)
@@ -58,6 +60,7 @@ public class RecordType extends InvariantType
 		super(location);
 		this.name = new LexNameToken("?", "?", location);
 		this.fields = fields;
+		this.composed = false;
 	}
 
 	public Field findField(String tag)
@@ -264,5 +267,18 @@ public class RecordType extends InvariantType
 		
 		inNarrower = false;
 		return result;
+	}
+	
+	@Override
+	public TypeList getComposeTypes()
+	{
+		if (composed)
+		{
+			return new TypeList(this);
+		}
+		else
+		{
+			return new TypeList();
+		}
 	}
 }

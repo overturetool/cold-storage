@@ -354,6 +354,11 @@ public abstract class Type implements Comparable<Type>, Serializable, IAstNode
 	{
 		throw new ValueException(4, "Cannot get bind values for type " + this, ctxt);
 	}
+	
+	public TypeList getComposeTypes()
+	{
+		return new TypeList();
+	}
 
 	@Override
 	public boolean equals(Object other)

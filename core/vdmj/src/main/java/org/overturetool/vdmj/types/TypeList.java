@@ -112,4 +112,16 @@ public class TypeList extends Vector<Type>
 		
 		return results;
 	}
+
+	public TypeList getComposeTypes()
+	{
+		TypeList list = new TypeList();
+		
+		for (Type type: this)
+		{
+			list.addAll(type.getComposeTypes());
+		}
+		
+		return list;
+	}
 }

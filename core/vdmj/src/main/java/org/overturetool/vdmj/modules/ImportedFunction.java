@@ -31,6 +31,7 @@ import org.overturetool.vdmj.lex.LexNameToken;
 import org.overturetool.vdmj.typechecker.Environment;
 import org.overturetool.vdmj.typechecker.FlatCheckedEnvironment;
 import org.overturetool.vdmj.typechecker.NameScope;
+import org.overturetool.vdmj.typechecker.TypeComparator;
 import org.overturetool.vdmj.types.ParameterType;
 import org.overturetool.vdmj.types.Type;
 
@@ -50,6 +51,11 @@ public class ImportedFunction extends ImportedValue
 	@Override
 	public void typeCheck(Environment env)
 	{
+		if (type != null)
+		{
+			TypeComparator.checkComposeTypes(type, env, false);
+		}
+		
 		if (typeParams == null)
 		{
 			super.typeCheck(env);

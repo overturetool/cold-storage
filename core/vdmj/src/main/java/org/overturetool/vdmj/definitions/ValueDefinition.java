@@ -167,6 +167,8 @@ public class ValueDefinition extends Definition
 		}
 		else if (type != null)
 		{
+			TypeComparator.checkComposeTypes(type, base, false);
+			
 			if (!TypeComparator.compatible(type, expType))
 			{
 				report(3051, "Expression does not match declared type");

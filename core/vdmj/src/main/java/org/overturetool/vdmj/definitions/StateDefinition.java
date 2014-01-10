@@ -42,6 +42,7 @@ import org.overturetool.vdmj.typechecker.Environment;
 import org.overturetool.vdmj.typechecker.NameScope;
 import org.overturetool.vdmj.typechecker.Pass;
 import org.overturetool.vdmj.typechecker.TypeCheckException;
+import org.overturetool.vdmj.typechecker.TypeComparator;
 import org.overturetool.vdmj.types.BooleanType;
 import org.overturetool.vdmj.types.Field;
 import org.overturetool.vdmj.types.FunctionType;
@@ -72,7 +73,7 @@ public class StateDefinition extends Definition
 	public FunctionValue initfunc = null;
 
 	private final DefinitionList statedefs;
-	private Type recordType;
+	private RecordType recordType;
 	private State moduleState = null;
 	public boolean canBeExecuted = true;
 
@@ -102,7 +103,7 @@ public class StateDefinition extends Definition
 			statedefs.add(ld);
 		}
 
-		recordType = new RecordType(name, fields);
+		recordType = new RecordType(name, fields, false);
 		LocalDefinition recordDefinition = null;
 
 		recordDefinition = new LocalDefinition(location, name, NameScope.STATE, recordType);
@@ -152,7 +153,7 @@ public class StateDefinition extends Definition
 			}
 		}
 
-		recordType = recordType.typeResolve(env, null);
+		recordType = (RecordType) recordType.typeResolve(env, null);
 
 		if (invPattern != null)
 		{
@@ -174,6 +175,11 @@ public class StateDefinition extends Definition
 			return;
 		}
 
+		for (Field field: recordType.fields)
+		{
+			TypeComparator.checkComposeTypes(field.type, base, false);
+		}
+		
 		statedefs.typeCheck(base, scope);
 
 		if (invdef != null)

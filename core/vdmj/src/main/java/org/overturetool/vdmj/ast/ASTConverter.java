@@ -388,7 +388,7 @@ public class ASTConverter
 			IOmlComplexType st = (IOmlComplexType)shape;
 			LexNameToken name = idToName(st.getIdentifier(), st);
 			List<Field> flist = convertFieldList(st.getFieldList());
-			InvariantType ntype = new RecordType(name, flist);
+			InvariantType ntype = new RecordType(name, flist, false);
 
 			Pattern invp = null;
 			Expression inve = null;
@@ -2724,7 +2724,7 @@ public class ASTConverter
 			IOmlCompositeType ct = (IOmlCompositeType)type;
 			LexNameToken name = idToName(ct.getIdentifier(), ct);
 			List<IOmlField> fields = ct.getFieldList();
-			tp = new RecordType(name, convertFieldList(fields));
+			tp = new RecordType(name, convertFieldList(fields), true);
 		}
 		else if (type instanceof IOmlUnionType)
 		{

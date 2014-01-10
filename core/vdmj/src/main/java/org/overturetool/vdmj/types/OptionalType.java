@@ -252,4 +252,10 @@ public class OptionalType extends Type
 		list.add(new NilValue());
 		return list;
 	}
+	
+	@Override
+	public TypeList getComposeTypes()
+	{
+		return type.getComposeTypes();
+	}
 }

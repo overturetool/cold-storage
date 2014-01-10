@@ -208,4 +208,13 @@ public class FunctionType extends Type
 
 		return result.narrowerThan(accessSpecifier);
 	}
+	
+	@Override
+	public TypeList getComposeTypes()
+	{
+		TypeList list = new TypeList();
+		list.addAll(parameters.getComposeTypes());
+		list.addAll(result.getComposeTypes());
+		return list;
+	}
 }

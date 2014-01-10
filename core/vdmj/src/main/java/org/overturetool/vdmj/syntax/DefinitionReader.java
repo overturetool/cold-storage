@@ -350,7 +350,7 @@ public class DefinitionReader extends SyntaxReader
 
 			case COLONCOLON:
 				nextToken();
-				invtype = new RecordType(idToName(id), tr.readFieldList());
+				invtype = new RecordType(idToName(id), tr.readFieldList(), false);
 				break;
 
 			default:

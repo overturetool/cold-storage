@@ -57,6 +57,8 @@ public class MultipleTypeBind extends MultipleBind
 		plist.typeResolve(base);
 		type = type.typeResolve(base, null);
 		Type ptype = getPossibleType();
+		
+		TypeComparator.checkComposeTypes(type, base, false);
 
 		if (!TypeComparator.compatible(ptype, type))
 		{

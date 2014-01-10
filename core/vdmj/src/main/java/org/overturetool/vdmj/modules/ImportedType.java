@@ -93,6 +93,7 @@ public class ImportedType extends Import
 		if (def != null && from != null)
 		{
 			def.type = (InvariantType)def.type.typeResolve(env, null);
+			TypeComparator.checkComposeTypes(def.type, env, false);
 			Definition expdef = from.exportdefs.findType(name, null);
 
 			if (expdef != null)

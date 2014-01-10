@@ -125,4 +125,10 @@ public class SeqType extends Type
 	{
 		return empty ? 0 : seqof.hashCode();
 	}
+	
+	@Override
+	public TypeList getComposeTypes()
+	{
+		return seqof.getComposeTypes();
+	}
 }

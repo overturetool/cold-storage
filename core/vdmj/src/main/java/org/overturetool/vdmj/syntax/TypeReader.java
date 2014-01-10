@@ -102,16 +102,37 @@ public class TypeReader extends SyntaxReader
 	private Type readUnionType()
 		throws ParserException, LexException
 	{
-		Type type = readComposeType();
+		Type type = readProductType();
 
 		while (lastToken().type == Token.PIPE)
 		{
 			LexToken token = lastToken();
 			nextToken();
-			type = new UnionType(token.location, type, readComposeType());
+			type = new UnionType(token.location, type, readProductType());
 		}
 
 		return type;
+	}
+
+	private Type readProductType()
+		throws ParserException, LexException
+	{
+		LexToken token = lastToken();
+		Type type = readComposeType();
+		TypeList productList = new TypeList(type);
+	
+		while (lastToken().type == Token.TIMES)
+		{
+			nextToken();
+			productList.add(readComposeType());
+		}
+	
+		if (productList.size() == 1)
+		{
+			return type;
+		}
+	
+		return new ProductType(token.location, productList);
 	}
 
 	private Type readComposeType()
@@ -124,12 +145,12 @@ public class TypeReader extends SyntaxReader
 			nextToken();
 			LexIdentifierToken id = readIdToken("Compose not followed by record identifier");
 			checkFor(Token.OF, 2249, "Missing 'of' in compose type");
-			type = new RecordType(idToName(id), readFieldList());
+			type = new RecordType(idToName(id), readFieldList(), true);
 			checkFor(Token.END, 2250, "Missing 'end' in compose type");
 		}
 		else
 		{
-			type = readProductType();
+			type = readMapType();
 		}
 
 		return type;
@@ -221,27 +242,6 @@ public class TypeReader extends SyntaxReader
 		return list;
 	}
 
-	private Type readProductType()
-		throws ParserException, LexException
-	{
-		LexToken token = lastToken();
-		Type type = readMapType();
-		TypeList productList = new TypeList(type);
-
-		while (lastToken().type == Token.TIMES)
-		{
-			nextToken();
-			productList.add(readMapType());
-		}
-
-		if (productList.size() == 1)
-		{
-			return type;
-		}
-
-		return new ProductType(token.location, productList);
-	}
-
 	private Type readMapType()
 		throws ParserException, LexException
 	{
@@ -254,14 +254,14 @@ public class TypeReader extends SyntaxReader
 				nextToken();
 				type = readType();	// Effectively bracketed by 'to'
 				checkFor(Token.TO, 2251, "Expecting 'to' in map type");
-				type = new MapType(token.location, type, readMapType());
+				type = new MapType(token.location, type, readComposeType());
 				break;
 
 			case INMAP:
 				nextToken();
 				type = readType();	// Effectively bracketed by 'to'
 				checkFor(Token.TO, 2252, "Expecting 'to' in inmap type");
-				type = new InMapType(token.location, type, readMapType());
+				type = new InMapType(token.location, type, readComposeType());
 				break;
 
 			default:
@@ -283,19 +283,19 @@ public class TypeReader extends SyntaxReader
 			case SET:
 				nextToken();
 				checkFor(Token.OF, 2253, "Expecting 'of' after set");
-				type = new SetType(token.location, readMapType());
+				type = new SetType(token.location, readComposeType());
 				break;
 
 			case SEQ:
 				nextToken();
 				checkFor(Token.OF, 2254, "Expecting 'of' after seq");
-				type = new SeqType(token.location, readMapType());
+				type = new SeqType(token.location, readComposeType());
 				break;
 
 			case SEQ1:
 				nextToken();
 				checkFor(Token.OF, 2255, "Expecting 'of' after seq1");
-				type = new Seq1Type(token.location, readMapType());
+				type = new Seq1Type(token.location, readComposeType());
 				break;
 
 			default:

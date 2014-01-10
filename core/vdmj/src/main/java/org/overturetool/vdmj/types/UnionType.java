@@ -836,4 +836,10 @@ public class UnionType extends Type
 
 		return v;
 	}
+	
+	@Override
+	public TypeList getComposeTypes()
+	{
+		return types.getComposeTypes();
+	}
 }

@@ -33,6 +33,7 @@ import org.overturetool.vdmj.runtime.Context;
 import org.overturetool.vdmj.runtime.ValueException;
 import org.overturetool.vdmj.typechecker.Environment;
 import org.overturetool.vdmj.typechecker.NameScope;
+import org.overturetool.vdmj.typechecker.TypeComparator;
 import org.overturetool.vdmj.types.FunctionType;
 import org.overturetool.vdmj.types.ParameterType;
 import org.overturetool.vdmj.types.Type;
@@ -155,7 +156,9 @@ public class FuncInstantiationExpression extends Expression
     						}
     					}
 
-    					fixed.add(ptype.typeResolve(env, null));
+    					ptype = ptype.typeResolve(env, null);
+    					fixed.add(ptype);
+    					TypeComparator.checkComposeTypes(ptype, env, false);
     				}
 
     				actualTypes = fixed;

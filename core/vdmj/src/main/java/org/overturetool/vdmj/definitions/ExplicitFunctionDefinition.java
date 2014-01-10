@@ -246,6 +246,8 @@ public class ExplicitFunctionDefinition extends Definition
 		{
 			defs.addAll(getTypeParamDefinitions());
 		}
+		
+		TypeComparator.checkComposeTypes(type, base, false);
 
 		expectedResult = checkParams(paramPatternList.listIterator(), type);
 

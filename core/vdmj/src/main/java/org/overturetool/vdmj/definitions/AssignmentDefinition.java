@@ -118,6 +118,8 @@ public class AssignmentDefinition extends Definition
 	{
 		expType = expression.typeCheck(base, null, scope);
 		type = type.typeResolve(base, null);
+		
+		TypeComparator.checkComposeTypes(type, base, false);
 
 		if (expType instanceof VoidType)
 		{

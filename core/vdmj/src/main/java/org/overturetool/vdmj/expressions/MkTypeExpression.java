@@ -104,7 +104,7 @@ public class MkTypeExpression extends Expression
 
 			ExplicitFunctionDefinition inv = recordType.invdef;
 
-			recordType = new RecordType(recordType.name.getExplicit(true), recordType.fields);
+			recordType = new RecordType(recordType.name.getExplicit(true), recordType.fields, recordType.composed);
 			recordType.setInvariant(inv);
 		}
 

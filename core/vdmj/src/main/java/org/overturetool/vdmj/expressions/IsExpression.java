@@ -33,6 +33,7 @@ import org.overturetool.vdmj.runtime.Context;
 import org.overturetool.vdmj.runtime.ValueException;
 import org.overturetool.vdmj.typechecker.Environment;
 import org.overturetool.vdmj.typechecker.NameScope;
+import org.overturetool.vdmj.typechecker.TypeComparator;
 import org.overturetool.vdmj.types.BooleanType;
 import org.overturetool.vdmj.types.Type;
 import org.overturetool.vdmj.types.TypeList;
@@ -80,6 +81,7 @@ public class IsExpression extends Expression
 		if (basictype != null)
 		{
 			basictype = basictype.typeResolve(env, null);
+			TypeComparator.checkComposeTypes(basictype, env, false);
 		}
 
 		if (typename != null)

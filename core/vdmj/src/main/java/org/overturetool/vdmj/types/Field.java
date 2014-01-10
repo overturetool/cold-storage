@@ -94,8 +94,7 @@ public class Field implements Serializable, IAstNode
 	{
 		if (other instanceof Field)
 		{
-			Field fother = (Field)other;
-			return tag.equals(fother.tag) && type.equals(fother.type);
+			return toString().equals(other.toString());	// Includes equality abstraction
 		}
 
 		return false;

@@ -232,4 +232,10 @@ public class BracketType extends Type
 	{
 		return type.hashCode();
 	}
+	
+	@Override
+	public TypeList getComposeTypes()
+	{
+		return type.getComposeTypes();
+	}
 }
