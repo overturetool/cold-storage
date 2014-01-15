@@ -274,7 +274,14 @@ public class RecordType extends InvariantType
 	{
 		if (composed)
 		{
-			return new TypeList(this);
+			TypeList types = new TypeList(this);
+
+			for (Field f: fields)
+			{
+				types.addAll(f.type.getComposeTypes());
+			}
+			
+			return types;
 		}
 		else
 		{

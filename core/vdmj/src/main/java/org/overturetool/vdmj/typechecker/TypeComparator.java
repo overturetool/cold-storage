@@ -27,6 +27,7 @@ import java.util.Vector;
 
 import org.overturetool.vdmj.definitions.Definition;
 import org.overturetool.vdmj.definitions.TypeDefinition;
+import org.overturetool.vdmj.lex.LexNameList;
 import org.overturetool.vdmj.types.BracketType;
 import org.overturetool.vdmj.types.ClassType;
 import org.overturetool.vdmj.types.FunctionType;
@@ -960,6 +961,28 @@ public class TypeComparator
 				else
 				{
 					TypeChecker.report(3113, "Unknown type name '" + composeType.name + "'", composeType.location);
+				}
+			}
+		}
+		
+		// Lastly, check that the compose types extracted are compatible
+		LexNameList done = new LexNameList();
+		
+		for (Type c1: undefined)
+		{
+			for (Type c2: undefined)
+			{
+				if (c1 != c2)
+				{
+					RecordType r1 = (RecordType)c1;
+					RecordType r2 = (RecordType)c2;
+					
+					if (r1.name.equals(r2.name) && !done.contains(r1.name) && !r1.fields.equals(r2.fields))
+					{
+						TypeChecker.report(3325, "Mismatched compose definitions for " + r1.name, r1.location);
+						TypeChecker.detail2(r1.name.name, r1.location, r2.name.name, r2.location);
+						done.add(r1.name);
+					}
 				}
 			}
 		}
