@@ -49,6 +49,7 @@ import org.overturetool.vdmj.scheduler.Lock;
 import org.overturetool.vdmj.statements.ClassInvariantStatement;
 import org.overturetool.vdmj.statements.Statement;
 import org.overturetool.vdmj.typechecker.Environment;
+import org.overturetool.vdmj.typechecker.FlatCheckedEnvironment;
 import org.overturetool.vdmj.typechecker.FlatEnvironment;
 import org.overturetool.vdmj.typechecker.NameScope;
 import org.overturetool.vdmj.typechecker.Pass;
@@ -899,7 +900,17 @@ public class ClassDefinition extends Definition
 		{
 			if (d.pass == p)
 			{
-				d.typeCheck(base, NameScope.NAMES);
+				Environment env = base;
+				
+				if (d instanceof ValueDefinition)
+				{
+					// ValueDefinition body always a static context
+					FlatCheckedEnvironment checked = new FlatCheckedEnvironment(new DefinitionList(), base, NameScope.NAMES);
+					checked.setStatic(true);
+					env = checked;
+				}
+				
+				d.typeCheck(env, NameScope.NAMES);
 			}
 		}
 
