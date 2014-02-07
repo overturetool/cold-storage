@@ -692,6 +692,7 @@ as the expected and actual values.
 3323, "Overloaded operation cannot mix static and non-static"
 3324, "Operation <name> is not static"
 3325, "Mismatched compose definitions for <type>"
+3326, "Constructor can only return 'self'"
 
 
 4000, "Cannot instantiate abstract class <class>"

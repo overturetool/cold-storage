@@ -23,7 +23,11 @@
 
 package org.overturetool.vdmj.statements;
 
+import org.overturetool.vdmj.definitions.Definition;
+import org.overturetool.vdmj.definitions.ExplicitOperationDefinition;
+import org.overturetool.vdmj.definitions.ImplicitOperationDefinition;
 import org.overturetool.vdmj.expressions.Expression;
+import org.overturetool.vdmj.expressions.SelfExpression;
 import org.overturetool.vdmj.lex.LexLocation;
 import org.overturetool.vdmj.pog.POContextStack;
 import org.overturetool.vdmj.pog.ProofObligationList;
@@ -69,6 +73,25 @@ public class ReturnStatement extends Statement
 	@Override
 	public Type typeCheck(Environment env, NameScope scope)
 	{
+		Definition enclosing = env.getEnclosingDefinition();
+		boolean inConstructor = false;
+		
+		if (enclosing instanceof ExplicitOperationDefinition)
+		{
+			ExplicitOperationDefinition eod = (ExplicitOperationDefinition)enclosing;
+			inConstructor = eod.isConstructor;
+		}
+		else if (enclosing instanceof ImplicitOperationDefinition)
+		{
+			ImplicitOperationDefinition iod = (ImplicitOperationDefinition)enclosing;
+			inConstructor = iod.isConstructor;
+		}
+		
+		if (inConstructor && !(expression instanceof SelfExpression))
+		{
+			report(3326, "Constructor can only return 'self'");
+		}
+		
 		if (expression == null)
 		{
 			return new VoidReturnType(location);
