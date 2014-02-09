@@ -23,8 +23,6 @@
 
 package org.overturetool.vdmj.expressions;
 
-import java.util.Iterator;
-
 import org.overturetool.vdmj.lex.LexToken;
 import org.overturetool.vdmj.pog.MapCompatibleObligation;
 import org.overturetool.vdmj.pog.POContextStack;
@@ -103,11 +101,9 @@ public class MapUnionExpression extends BinaryExpression
 
 		ValueMap result = new ValueMap();
 		result.putAll(lm);
-		Iterator<Value> i = rm.keySet().iterator();
 
-		while (i.hasNext())
+		for (Value k: rm.keySet())
 		{
-			Value k = i.next();
 			Value rng = rm.get(k);
 			Value old = result.put(k, rng);
 

@@ -86,7 +86,18 @@ public class DistMergeExpression extends UnaryExpression
 
     		for (Value v: setmap)
     		{
-   				result.putAll(v.mapValue(ctxt));
+    			ValueMap m = v.mapValue(ctxt);
+    			
+    			for (Value k: m.keySet())
+    			{
+    				Value rng = m.get(k);
+    				Value old = result.put(k, rng);
+
+    				if (old != null && !old.equals(rng))
+    				{
+    					abort(4021, "Duplicate map keys have different values: " + k, ctxt);
+    				}
+    			}
     		}
 
     		return new MapValue(result);
