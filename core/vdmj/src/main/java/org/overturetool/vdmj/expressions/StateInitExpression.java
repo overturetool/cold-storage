@@ -116,8 +116,8 @@ public class StateInitExpression extends Expression
 
 		if (!canBeExecuted)
 		{
-			warning(5010, "State init expression cannot be executed");
-			detail("Expected", "p == p = mk_Record(...)");
+			exp.warning(5010, "State init expression cannot be executed");
+			detail("Expected", "p == p = mk_" + state.name.name + "(...)");
 		}
 
 		state.canBeExecuted = canBeExecuted;
